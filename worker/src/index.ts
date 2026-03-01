@@ -1,33 +1,24 @@
 import type { AnalysisRequest, AnalysisResponse, Env } from './types';
-import { fetchFinancials, fetchTechnicalIndicators, fetchInsiderTrades, fetchEarningsSurprises, fetchPeers } from './finnhub';
+import { fetchFinancials, fetchTechnicalIndicators, fetchInsiderTrades, fetchEarningsSurprises, fetchPeers, fetchAnalystConsensus, fetchPriceTargets, fetchInstitutionalOwnership } from './finnhub';
 import { fetchRedditPosts } from './rss';
 import { analyzeSentiment } from './groq';
-import { extractRisks, synthesizeReport } from './gemini';
+import { extractRisks, synthesizeReport, generatePremiumInsights } from './gemini';
 import { auditReport } from './cohere';
 import { fetchSECFilings } from './edgar';
 import { generateSecondOpinion } from './cerebras';
 import {
-    getMockFinancials,
-    getMockSentiment,
-    getMockRisks,
-    getMockCatalysts,
-    getMockAudit,
-    getMockReport,
-    getMockTechnicals,
-    getMockInsiderActivity,
-    getMockEarnings,
-    getMockPeers,
-    getMockSECFilings,
-    getMockAIConsensus,
-    getMockInvestmentScore,
-    getMockFinancialHealth,
-    getMockNipunScore,
-    getMockScenarioAnalysis,
-    getMockRevenueBreakdown,
-    getMockMomentum,
-    getMockValueGrowth,
-    getMockCompetitiveMoat,
-    getMockRiskReward,
+    computeInvestmentScore, computeFinancialHealth, computeNipunScore,
+    computeMomentum, computeValueGrowth, computeRiskReward,
+    computeDividendAnalysis, computeExtendedTechnicals, computeValuationModels,
+    computeEarningsQuality,
+} from './compute';
+import {
+    getMockFinancials, getMockSentiment, getMockRisks, getMockCatalysts,
+    getMockAudit, getMockReport, getMockTechnicals, getMockInsiderActivity,
+    getMockEarnings, getMockPeers, getMockSECFilings, getMockAIConsensus,
+    getMockInvestmentScore, getMockFinancialHealth, getMockNipunScore,
+    getMockScenarioAnalysis, getMockRevenueBreakdown, getMockMomentum,
+    getMockValueGrowth, getMockCompetitiveMoat, getMockRiskReward,
     getMockDividendAnalysis,
 } from './mock';
 
@@ -46,7 +37,7 @@ export default {
             return handleCORS(
                 request,
                 env,
-                Response.json({ status: 'ok', service: 'nipun-ai-worker', version: '2.0.0' })
+                Response.json({ status: 'ok', service: 'nipun-ai-worker', version: '3.0.0' })
             );
         }
 
@@ -101,6 +92,16 @@ export default {
                         competitiveMoat: getMockCompetitiveMoat(upperTicker),
                         riskReward: getMockRiskReward(upperTicker),
                         dividendAnalysis: getMockDividendAnalysis(upperTicker),
+                        // New premium fields — null in demo
+                        analystConsensus: null,
+                        priceTarget: null,
+                        institutionalOwnership: null,
+                        extendedTechnicals: null,
+                        valuationModels: null,
+                        swotAnalysis: null,
+                        investmentThesis: null,
+                        newsHeadlines: null,
+                        earningsQualityScore: null,
                         report: getMockReport(upperTicker),
                         audit: getMockAudit(upperTicker),
                         disclaimer: DISCLAIMER,
@@ -119,104 +120,181 @@ export default {
                         financials = getMockFinancials(upperTicker);
                     }
 
-                    // Phase 1b-1e: Parallel extended data collection
-                    const [sentiment, risksResult, technicals, insiderActivity, earnings, peers, secFilings] =
-                        await Promise.all([
-                            // Sentiment (Reddit RSS → Groq)
-                            (async () => {
-                                try {
-                                    const posts = await fetchRedditPosts(upperTicker);
-                                    return await analyzeSentiment(upperTicker, posts, keys.groq);
-                                } catch (err) {
-                                    console.error('Sentiment failed, using mock:', err);
-                                    return getMockSentiment(upperTicker);
-                                }
-                            })(),
-                            // Risks & Catalysts (Gemini)
-                            (async () => {
-                                try {
-                                    return await extractRisks(upperTicker, keys.gemini);
-                                } catch (err) {
-                                    console.error('Gemini risks failed, using mock:', err);
-                                    return { risks: getMockRisks(upperTicker), catalysts: getMockCatalysts(upperTicker) };
-                                }
-                            })(),
-                            // Technical Indicators (Finnhub)
-                            (async () => {
-                                try {
-                                    return await fetchTechnicalIndicators(upperTicker, keys.finnhub);
-                                } catch (err) {
-                                    console.error('Technical indicators failed, using mock:', err);
-                                    return getMockTechnicals(upperTicker);
-                                }
-                            })(),
-                            // Insider Trades (Finnhub)
-                            (async () => {
-                                try {
-                                    return await fetchInsiderTrades(upperTicker, keys.finnhub);
-                                } catch (err) {
-                                    console.error('Insider trades failed, using mock:', err);
-                                    return getMockInsiderActivity(upperTicker);
-                                }
-                            })(),
-                            // Earnings Surprises (Finnhub)
-                            (async () => {
-                                try {
-                                    return await fetchEarningsSurprises(upperTicker, keys.finnhub);
-                                } catch (err) {
-                                    console.error('Earnings failed, using mock:', err);
-                                    return getMockEarnings(upperTicker);
-                                }
-                            })(),
-                            // Peer Comparison (Finnhub)
-                            (async () => {
-                                try {
-                                    return await fetchPeers(upperTicker, keys.finnhub);
-                                } catch (err) {
-                                    console.error('Peers failed, using mock:', err);
-                                    return getMockPeers(upperTicker);
-                                }
-                            })(),
-                            // SEC Filings (EDGAR — no key needed)
-                            (async () => {
-                                try {
-                                    return await fetchSECFilings(upperTicker);
-                                } catch (err) {
-                                    console.error('SEC filings failed:', err);
-                                    return getMockSECFilings(upperTicker);
-                                }
-                            })(),
-                        ]);
+                    // Phase 1b: Parallel data collection (all independent)
+                    const [
+                        sentimentResult, risksResult, technicalsResult,
+                        insiderActivity, earnings, peers, secFilings,
+                        analystConsensus, priceTarget, institutionalOwnership
+                    ] = await Promise.all([
+                        // Sentiment (Reddit RSS → Groq)
+                        (async () => {
+                            try {
+                                const posts = await fetchRedditPosts(upperTicker);
+                                return await analyzeSentiment(upperTicker, posts, keys.groq);
+                            } catch (err) {
+                                console.error('Sentiment failed, using mock:', err);
+                                return getMockSentiment(upperTicker);
+                            }
+                        })(),
+                        // Risks & Catalysts & News (Gemini Flash-Lite)
+                        (async () => {
+                            try {
+                                return await extractRisks(upperTicker, keys.gemini);
+                            } catch (err) {
+                                console.error('Gemini risks failed, using mock:', err);
+                                return { risks: getMockRisks(upperTicker), catalysts: getMockCatalysts(upperTicker), newsHeadlines: [] };
+                            }
+                        })(),
+                        // Technical Indicators + raw candle data (Finnhub)
+                        (async () => {
+                            try {
+                                return await fetchTechnicalIndicators(upperTicker, keys.finnhub);
+                            } catch (err) {
+                                console.error('Technical indicators failed, using mock:', err);
+                                return { ...getMockTechnicals(upperTicker), _candles: null as { closes: number[]; highs: number[]; lows: number[] } | null };
+                            }
+                        })(),
+                        // Insider Trades (Finnhub)
+                        (async () => {
+                            try {
+                                return await fetchInsiderTrades(upperTicker, keys.finnhub);
+                            } catch (err) {
+                                console.error('Insider trades failed, using mock:', err);
+                                return getMockInsiderActivity(upperTicker);
+                            }
+                        })(),
+                        // Earnings Surprises (Finnhub)
+                        (async () => {
+                            try {
+                                return await fetchEarningsSurprises(upperTicker, keys.finnhub);
+                            } catch (err) {
+                                console.error('Earnings failed, using mock:', err);
+                                return getMockEarnings(upperTicker);
+                            }
+                        })(),
+                        // Peer Comparison (Finnhub)
+                        (async () => {
+                            try {
+                                return await fetchPeers(upperTicker, keys.finnhub);
+                            } catch (err) {
+                                console.error('Peers failed, using mock:', err);
+                                return getMockPeers(upperTicker);
+                            }
+                        })(),
+                        // SEC Filings (EDGAR — no key needed)
+                        (async () => {
+                            try {
+                                return await fetchSECFilings(upperTicker);
+                            } catch (err) {
+                                console.error('SEC filings failed:', err);
+                                return getMockSECFilings(upperTicker);
+                            }
+                        })(),
+                        // ── NEW: Analyst Consensus (Finnhub free)
+                        (async () => {
+                            try {
+                                return await fetchAnalystConsensus(upperTicker, keys.finnhub);
+                            } catch { return null; }
+                        })(),
+                        // ── NEW: Price Targets (Finnhub free)
+                        (async () => {
+                            try {
+                                return await fetchPriceTargets(upperTicker, keys.finnhub, financials.price);
+                            } catch { return null; }
+                        })(),
+                        // ── NEW: Institutional Ownership (Finnhub free)
+                        (async () => {
+                            try {
+                                return await fetchInstitutionalOwnership(upperTicker, keys.finnhub);
+                            } catch { return null; }
+                        })(),
+                    ]);
 
+                    const sentiment = sentimentResult;
                     const risks = risksResult.risks;
                     const catalysts = risksResult.catalysts;
+                    const newsHeadlines = risksResult.newsHeadlines;
 
-                    // Phase 2: Synthesis (Gemini)
-                    let report;
-                    try {
-                        report = await synthesizeReport(financials, sentiment, risks, catalysts, keys.gemini);
-                    } catch (err) {
-                        console.error('Gemini synthesis failed, using mock:', err);
-                        report = getMockReport(upperTicker);
-                    }
+                    // Extract candle data and clean technicals
+                    const candles = technicalsResult._candles;
+                    const technicals = {
+                        rsi: technicalsResult.rsi,
+                        macd: technicalsResult.macd,
+                        sma50: technicalsResult.sma50,
+                        sma200: technicalsResult.sma200,
+                        overallSignal: technicalsResult.overallSignal,
+                        goldenDeathCross: technicalsResult.goldenDeathCross,
+                    };
 
-                    // Phase 3a: AI Consensus (Cerebras — optional)
-                    let aiConsensus = null;
-                    if (keys.cerebras) {
+                    // ── Phase 2: Compute all derived metrics (ZERO API calls) ──
+                    const investmentScore = computeInvestmentScore(financials, technicals, sentiment, risks, insiderActivity, earnings);
+                    const financialHealth = computeFinancialHealth(financials, candles?.closes ?? null);
+                    const momentum = computeMomentum(candles?.closes ?? null, financials);
+                    const valueGrowth = computeValueGrowth(financials);
+                    const riskReward = computeRiskReward(financials, candles?.closes ?? null);
+                    const dividendAnalysis = computeDividendAnalysis(financials);
+                    const valuationModels = computeValuationModels(financials);
+                    const earningsQualityScore = computeEarningsQuality(earnings);
+
+                    // Extended technicals from candle data
+                    let extendedTechnicals = null;
+                    if (candles && candles.closes.length >= 30) {
                         try {
-                            aiConsensus = await generateSecondOpinion(financials, sentiment, risks, catalysts, report, keys.cerebras);
+                            extendedTechnicals = computeExtendedTechnicals(candles.closes, candles.highs, candles.lows);
                         } catch (err) {
-                            console.error('Cerebras consensus failed (non-fatal):', err);
+                            console.error('Extended technicals computation failed:', err);
                         }
                     }
 
-                    // Phase 3b: Fact audit (Cohere — non-fatal)
-                    let audit = null;
-                    try {
-                        audit = await auditReport(report, financials, keys.cohere);
-                    } catch (err) {
-                        console.error('Cohere audit failed (non-fatal):', err);
-                    }
+                    // Nipun Score (depends on investmentScore + financialHealth)
+                    const nipunScore = computeNipunScore(investmentScore, financialHealth, technicals, sentiment, earnings);
+
+                    // ── Phase 3: AI Synthesis (parallel Gemini calls) ──
+                    const [report, premiumInsights] = await Promise.all([
+                        // Report synthesis (Gemini 2.5 Pro → 3.1 Pro → Flash)
+                        (async () => {
+                            try {
+                                return await synthesizeReport(financials, sentiment, risks, catalysts, keys.gemini);
+                            } catch (err) {
+                                console.error('Gemini synthesis failed, using mock:', err);
+                                return getMockReport(upperTicker);
+                            }
+                        })(),
+                        // Premium insights mega-prompt (Gemini 2.5 Flash → 3.1 Flash → Lite)
+                        (async () => {
+                            try {
+                                return await generatePremiumInsights(financials, sentiment, risks, catalysts, keys.gemini);
+                            } catch (err) {
+                                console.error('Premium insights failed (non-fatal):', err);
+                                return null;
+                            }
+                        })(),
+                    ]);
+
+                    // ── Phase 4: Secondary AI opinions (parallel, non-fatal) ──
+                    const [aiConsensus, audit] = await Promise.all([
+                        // AI Consensus (Cerebras — optional)
+                        (async () => {
+                            if (keys.cerebras) {
+                                try {
+                                    return await generateSecondOpinion(financials, sentiment, risks, catalysts, report, keys.cerebras);
+                                } catch (err) {
+                                    console.error('Cerebras consensus failed (non-fatal):', err);
+                                    return null;
+                                }
+                            }
+                            return null;
+                        })(),
+                        // Fact audit (Cohere — non-fatal)
+                        (async () => {
+                            try {
+                                return await auditReport(report, financials, keys.cohere);
+                            } catch (err) {
+                                console.error('Cohere audit failed (non-fatal):', err);
+                                return null;
+                            }
+                        })(),
+                    ]);
 
                     result = {
                         ticker: upperTicker,
@@ -231,16 +309,27 @@ export default {
                         peerComparison: peers,
                         secFilings,
                         aiConsensus,
-                        investmentScore: getMockInvestmentScore(upperTicker),
-                        financialHealth: getMockFinancialHealth(upperTicker),
-                        nipunScore: getMockNipunScore(upperTicker),
-                        scenarioAnalysis: getMockScenarioAnalysis(upperTicker),
-                        revenueBreakdown: getMockRevenueBreakdown(upperTicker),
-                        momentum: getMockMomentum(upperTicker),
-                        valueGrowth: getMockValueGrowth(upperTicker),
-                        competitiveMoat: getMockCompetitiveMoat(upperTicker),
-                        riskReward: getMockRiskReward(upperTicker),
-                        dividendAnalysis: getMockDividendAnalysis(upperTicker),
+                        // ── Computed metrics (real data, not mock!) ──
+                        investmentScore,
+                        financialHealth,
+                        nipunScore,
+                        scenarioAnalysis: premiumInsights?.scenarioAnalysis ?? getMockScenarioAnalysis(upperTicker),
+                        revenueBreakdown: premiumInsights?.revenueBreakdown ?? getMockRevenueBreakdown(upperTicker),
+                        momentum,
+                        valueGrowth,
+                        competitiveMoat: premiumInsights?.competitiveMoat ?? getMockCompetitiveMoat(upperTicker),
+                        riskReward,
+                        dividendAnalysis,
+                        // ── New premium fields ──
+                        analystConsensus,
+                        priceTarget,
+                        institutionalOwnership,
+                        extendedTechnicals,
+                        valuationModels,
+                        swotAnalysis: premiumInsights?.swotAnalysis ?? null,
+                        investmentThesis: premiumInsights?.investmentThesis ?? null,
+                        newsHeadlines,
+                        earningsQualityScore,
                         report,
                         audit,
                         disclaimer: DISCLAIMER,

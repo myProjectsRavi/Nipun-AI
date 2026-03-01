@@ -7,31 +7,58 @@ const FEATURES = [
     { icon: '🏆', title: 'Nipun Score™', desc: 'A+ to F letter grade with actionable recommendation', tag: 'EXCLUSIVE' },
     { icon: '🎯', title: 'Scenario Analysis', desc: 'Bull / Base / Bear targets with probabilities', tag: 'EXCLUSIVE' },
     { icon: '🏰', title: 'Competitive Moat', desc: 'AI-assessed moat sources & durability rating', tag: 'EXCLUSIVE' },
-    { icon: '📊', title: 'Revenue Breakdown', desc: 'Segment-level revenue with YoY growth rates', tag: 'EXCLUSIVE' },
+    { icon: '🧮', title: '3 Valuation Models', desc: 'DCF + Graham Number + Peter Lynch fair value', tag: 'EXCLUSIVE' },
+    { icon: '📊', title: 'Analyst Consensus', desc: 'Wall Street Buy/Hold/Sell ratings + price targets', tag: 'NEW' },
+    { icon: '🔍', title: 'SWOT Analysis', desc: 'AI-generated strengths, weaknesses, opportunities, threats', tag: 'NEW' },
+    { icon: '📐', title: 'Advanced Technicals', desc: 'Bollinger, Stochastic, ATR, Fibonacci, S/R levels', tag: 'NEW' },
+    { icon: '🏛️', title: 'Institutional Holders', desc: 'Top 10 institutional owners + position changes', tag: 'NEW' },
+    { icon: '📋', title: 'Investment Thesis', desc: 'AI-generated bull and bear case summaries', tag: 'EXCLUSIVE' },
     { icon: '⚡', title: 'Momentum Score', desc: 'Multi-timeframe performance + relative strength', tag: 'EXCLUSIVE' },
     { icon: '⚖️', title: 'Risk-Reward Ratio', desc: 'Quantified upside vs downside with rating', tag: 'EXCLUSIVE' },
     { icon: '💎', title: 'Value vs Growth', desc: 'Classification with PEG, P/B, P/S metrics', tag: 'EXCLUSIVE' },
     { icon: '💰', title: 'Dividend Deep Dive', desc: 'Safety score, payout ratio, growth streak', tag: 'EXCLUSIVE' },
-    { icon: '🧠', title: 'Multi-AI Consensus', desc: 'Cross-model agreement score with divergences', tag: null },
+    { icon: '🧠', title: 'Multi-AI Consensus', desc: '5 Gemini models + Cerebras with agreement score', tag: null },
     { icon: '🛡️', title: 'Financial Health', desc: 'Altman Z-Score + Piotroski F-Score analysis', tag: null },
     { icon: '📈', title: 'Technical Analysis', desc: 'RSI, MACD, SMA with plain-English verdicts', tag: null },
     { icon: '🏦', title: 'Insider Activity', desc: 'Real-time executive buy/sell tracking', tag: null },
+    { icon: '📰', title: 'Live News Feed', desc: 'Latest company news with AI risk assessment', tag: null },
+    { icon: '📄', title: 'SEC Filings', desc: 'Direct EDGAR links to 10-K, 10-Q, 8-K filings', tag: null },
+    { icon: '✅', title: 'Fact Audit', desc: 'Cohere-powered grounded/speculative claim check', tag: null },
 ];
 
 const COMPARISON = [
     { feature: 'Nipun Score™ (A+ to F)', nipun: true, screener: false, perplexity: false },
     { feature: 'Scenario Analysis (Bull/Base/Bear)', nipun: true, screener: false, perplexity: false },
     { feature: 'Competitive Moat Assessment', nipun: true, screener: false, perplexity: false },
+    { feature: 'SWOT Analysis (AI-Generated)', nipun: true, screener: false, perplexity: false },
+    { feature: 'Investment Thesis (Bull/Bear Case)', nipun: true, screener: false, perplexity: false },
+    { feature: 'DCF Intrinsic Value Estimate', nipun: true, screener: false, perplexity: false },
+    { feature: 'Graham Number Valuation', nipun: true, screener: false, perplexity: false },
+    { feature: 'Peter Lynch Fair Value', nipun: true, screener: false, perplexity: false },
+    { feature: 'Analyst Consensus (Buy/Hold/Sell)', nipun: true, screener: false, perplexity: true },
+    { feature: 'Analyst Price Targets (H/M/L)', nipun: true, screener: false, perplexity: true },
+    { feature: 'Institutional Ownership', nipun: true, screener: false, perplexity: false },
+    { feature: 'Bollinger Bands', nipun: true, screener: false, perplexity: false },
+    { feature: 'Stochastic Oscillator', nipun: true, screener: false, perplexity: false },
+    { feature: 'ATR (Average True Range)', nipun: true, screener: false, perplexity: false },
+    { feature: 'Fibonacci Retracement Levels', nipun: true, screener: false, perplexity: false },
+    { feature: 'Support & Resistance Levels', nipun: true, screener: false, perplexity: false },
+    { feature: 'Historical Volatility', nipun: true, screener: false, perplexity: false },
     { feature: 'Revenue Segment Breakdown', nipun: true, screener: true, perplexity: false },
-    { feature: 'Momentum Score', nipun: true, screener: false, perplexity: false },
+    { feature: 'Momentum Score (Multi-Timeframe)', nipun: true, screener: false, perplexity: false },
     { feature: 'Risk-Reward Ratio', nipun: true, screener: false, perplexity: false },
-    { feature: 'Multi-AI Consensus', nipun: true, screener: false, perplexity: false },
-    { feature: 'Altman Z-Score + Piotroski', nipun: true, screener: false, perplexity: false },
+    { feature: 'Multi-AI Consensus (5 Models)', nipun: true, screener: false, perplexity: false },
+    { feature: 'Altman Z-Score + Piotroski F-Score', nipun: true, screener: false, perplexity: false },
     { feature: 'Insider Trading Activity', nipun: true, screener: true, perplexity: false },
     { feature: 'SEC Filing Links', nipun: true, screener: true, perplexity: false },
-    { feature: 'Fact Audit (Grounded/Speculative)', nipun: true, screener: false, perplexity: false },
+    { feature: 'Fact Audit (10+ Claims Verified)', nipun: true, screener: false, perplexity: false },
     { feature: 'Real-time Social Sentiment', nipun: true, screener: false, perplexity: true },
-    { feature: '22+ Data Dimensions', nipun: true, screener: false, perplexity: false },
+    { feature: 'Value vs Growth Classification', nipun: true, screener: false, perplexity: false },
+    { feature: 'Dividend Safety Analysis', nipun: true, screener: true, perplexity: false },
+    { feature: 'Live News Headlines', nipun: true, screener: true, perplexity: true },
+    { feature: 'Earnings Quality Score', nipun: true, screener: false, perplexity: false },
+    { feature: 'PDF Export', nipun: true, screener: false, perplexity: false },
+    { feature: '55+ Data Dimensions', nipun: true, screener: false, perplexity: false },
     { feature: 'Completely Free', nipun: true, screener: false, perplexity: true },
 ];
 
@@ -101,7 +128,7 @@ function LandingPage() {
                 <p className="mx-auto mt-4 max-w-xl text-base text-white/50 leading-relaxed">
                     Get the stock analysis that Bloomberg charges ₹16,000/month for.
                     <br />
-                    <span className="font-semibold text-white/70">22+ data dimensions, multi-AI consensus, proprietary Nipun Score™ — all free.</span>
+                    <span className="font-semibold text-white/70">55+ data dimensions, 5 AI models, 3 valuation methods, proprietary Nipun Score™ — all free.</span>
                 </p>
             </section>
 
@@ -109,7 +136,7 @@ function LandingPage() {
             <section className="mb-12">
                 <div className="mb-6 text-center">
                     <h2 className="font-display text-sm font-bold uppercase tracking-[0.2em] text-gold">
-                        100x More Impact Than Competitors
+                        500x More Value Than Any Paid Service
                     </h2>
                     <p className="mt-1 text-xs text-white/30">Features you won't find on Screener.in, Perplexity, or any free tool</p>
                 </div>
@@ -134,7 +161,7 @@ function LandingPage() {
                         <h2 className="font-display text-sm font-bold uppercase tracking-[0.15em] text-gold">
                             ⚔️ Feature Comparison
                         </h2>
-                        <p className="mt-0.5 text-[10px] text-white/30">See why Nipun AI delivers 100x more value</p>
+                        <p className="mt-0.5 text-[10px] text-white/30">See why Nipun AI delivers 500x more value than $500/month services</p>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full">

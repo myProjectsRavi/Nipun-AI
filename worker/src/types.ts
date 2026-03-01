@@ -281,6 +281,98 @@ export interface AuditResult {
     unverifiableCount: number;
 }
 
+// ─── Analyst Consensus (Finnhub) ───────────────────────────────────
+export interface AnalystConsensus {
+    buy: number;
+    hold: number;
+    sell: number;
+    strongBuy: number;
+    strongSell: number;
+    consensusRating: 'Strong Buy' | 'Buy' | 'Hold' | 'Sell' | 'Strong Sell';
+    period: string;
+}
+
+// ─── Price Targets (Finnhub) ───────────────────────────────────────
+export interface PriceTarget {
+    targetHigh: number;
+    targetLow: number;
+    targetMean: number;
+    targetMedian: number;
+    numberOfAnalysts: number;
+    currentPrice: number;
+    upsidePercent: number;
+}
+
+// ─── Institutional Ownership (Finnhub) ────────────────────────────
+export interface InstitutionalHolder {
+    name: string;
+    shares: number;
+    value: number;
+    changePercent: number;
+}
+
+export interface InstitutionalOwnership {
+    totalOwnership: number;
+    holders: InstitutionalHolder[];
+    totalHolders: number;
+}
+
+// ─── SWOT Analysis (AI) ───────────────────────────────────────────
+export interface SWOTAnalysis {
+    strengths: string[];
+    weaknesses: string[];
+    opportunities: string[];
+    threats: string[];
+}
+
+// ─── Valuation Models (Computed) ──────────────────────────────────
+export interface ValuationEstimate {
+    value: number;
+    upside: number;
+    methodology: string;
+}
+
+export interface ValuationModels {
+    dcf: ValuationEstimate;
+    graham: ValuationEstimate;
+    lynch: ValuationEstimate;
+    consensus: { value: number; upside: number };
+}
+
+// ─── Extended Technicals (Computed) ───────────────────────────────
+export interface ExtendedTechnicals {
+    bollingerBands: {
+        upper: number; middle: number; lower: number;
+        bandwidth: number; signal: 'overbought' | 'oversold' | 'neutral';
+    };
+    stochastic: { k: number; d: number; signal: 'overbought' | 'oversold' | 'neutral' };
+    atr: number;
+    supportResistance: {
+        resistance2: number; resistance1: number; pivot: number;
+        support1: number; support2: number;
+    };
+    fibonacci: {
+        level236: number; level382: number; level500: number;
+        level618: number; level786: number;
+    };
+    historicalVolatility: number;
+    vwap: number;
+}
+
+// ─── Investment Thesis (AI) ───────────────────────────────────────
+export interface InvestmentThesis {
+    summary: string;
+    bullCase: string;
+    bearCase: string;
+}
+
+// ─── News Headlines ───────────────────────────────────────────────
+export interface NewsHeadline {
+    title: string;
+    source: string;
+    date: string;
+}
+
 // ─── API Contract ──────────────────────────────────────────────────
 export interface AnalysisKeys {
     finnhub: string;
@@ -318,6 +410,16 @@ export interface AnalysisResponse {
     competitiveMoat: CompetitiveMoat | null;
     riskReward: RiskRewardProfile | null;
     dividendAnalysis: DividendAnalysis | null;
+    // ── New premium fields ─────────────────────────────────────
+    analystConsensus: AnalystConsensus | null;
+    priceTarget: PriceTarget | null;
+    institutionalOwnership: InstitutionalOwnership | null;
+    extendedTechnicals: ExtendedTechnicals | null;
+    valuationModels: ValuationModels | null;
+    swotAnalysis: SWOTAnalysis | null;
+    investmentThesis: InvestmentThesis | null;
+    newsHeadlines: NewsHeadline[] | null;
+    earningsQualityScore: number | null;
     report: string;
     audit: AuditResult | null;
     disclaimer: string;

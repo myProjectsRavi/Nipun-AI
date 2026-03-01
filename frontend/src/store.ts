@@ -265,6 +265,82 @@ export interface AuditResult {
     unverifiableCount: number;
 }
 
+// ─── Analyst Consensus ─────────────────────────────────────────────
+export interface AnalystConsensus {
+    buy: number;
+    hold: number;
+    sell: number;
+    strongBuy: number;
+    strongSell: number;
+    consensusRating: string;
+    period: string;
+}
+
+export interface PriceTarget {
+    targetHigh: number;
+    targetLow: number;
+    targetMean: number;
+    targetMedian: number;
+    numberOfAnalysts: number;
+    currentPrice: number;
+    upsidePercent: number;
+}
+
+export interface InstitutionalHolder {
+    name: string;
+    shares: number;
+    value: number;
+    changePercent: number;
+}
+
+export interface InstitutionalOwnership {
+    totalOwnership: number;
+    holders: InstitutionalHolder[];
+    totalHolders: number;
+}
+
+export interface SWOTAnalysis {
+    strengths: string[];
+    weaknesses: string[];
+    opportunities: string[];
+    threats: string[];
+}
+
+export interface ValuationEstimate {
+    value: number;
+    upside: number;
+    methodology: string;
+}
+
+export interface ValuationModels {
+    dcf: ValuationEstimate;
+    graham: ValuationEstimate;
+    lynch: ValuationEstimate;
+    consensus: { value: number; upside: number };
+}
+
+export interface ExtendedTechnicals {
+    bollingerBands: { upper: number; middle: number; lower: number; bandwidth: number; signal: string };
+    stochastic: { k: number; d: number; signal: string };
+    atr: number;
+    supportResistance: { resistance2: number; resistance1: number; pivot: number; support1: number; support2: number };
+    fibonacci: { level236: number; level382: number; level500: number; level618: number; level786: number };
+    historicalVolatility: number;
+    vwap: number;
+}
+
+export interface InvestmentThesis {
+    summary: string;
+    bullCase: string;
+    bearCase: string;
+}
+
+export interface NewsHeadline {
+    title: string;
+    source: string;
+    date: string;
+}
+
 export interface AnalysisResponse {
     ticker: string;
     timestamp: string;
@@ -288,6 +364,15 @@ export interface AnalysisResponse {
     competitiveMoat: CompetitiveMoat | null;
     riskReward: RiskRewardProfile | null;
     dividendAnalysis: DividendAnalysis | null;
+    analystConsensus: AnalystConsensus | null;
+    priceTarget: PriceTarget | null;
+    institutionalOwnership: InstitutionalOwnership | null;
+    extendedTechnicals: ExtendedTechnicals | null;
+    valuationModels: ValuationModels | null;
+    swotAnalysis: SWOTAnalysis | null;
+    investmentThesis: InvestmentThesis | null;
+    newsHeadlines: NewsHeadline[] | null;
+    earningsQualityScore: number | null;
     report: string;
     audit: AuditResult | null;
     disclaimer: string;

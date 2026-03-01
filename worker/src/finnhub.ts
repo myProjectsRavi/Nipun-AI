@@ -1,4 +1,4 @@
-import type { FinancialData, TechnicalAnalysis, TechnicalSignal, InsiderTrade, InsiderActivity, EarningsSurprise, EarningsData, PeerMetrics, PeerComparison } from './types';
+import type { FinancialData, TechnicalAnalysis, TechnicalSignal, InsiderTrade, InsiderActivity, EarningsSurprise, EarningsData, PeerMetrics, PeerComparison, AnalystConsensus, PriceTarget, InstitutionalOwnership, InstitutionalHolder } from './types';
 
 const BASE = 'https://finnhub.io/api/v1';
 
@@ -59,7 +59,7 @@ export async function fetchFinancials(ticker: string, apiKey: string): Promise<F
  * Fetch technical indicators from Finnhub.
  * Computes RSI, MACD interpretation and SMA 50/200 cross detection.
  */
-export async function fetchTechnicalIndicators(ticker: string, apiKey: string): Promise<TechnicalAnalysis> {
+export async function fetchTechnicalIndicators(ticker: string, apiKey: string): Promise<TechnicalAnalysis & { _candles: { closes: number[]; highs: number[]; lows: number[] } }> {
     const now = Math.floor(Date.now() / 1000);
     const oneYearAgo = now - 365 * 86400;
 
@@ -147,7 +147,14 @@ export async function fetchTechnicalIndicators(ticker: string, apiKey: string): 
     const overallSignal = bullishCount > bearishCount ? 'bullish'
         : bearishCount > bullishCount ? 'bearish' : 'neutral';
 
-    return { rsi, macd, sma50, sma200, overallSignal, goldenDeathCross };
+    // Return raw candle data for extended technicals (computed in compute.ts)
+    const _candles = {
+        closes: candle.c!,
+        highs: (candle as Record<string, unknown>).h as number[] || candle.c!,
+        lows: (candle as Record<string, unknown>).l as number[] || candle.c!,
+    };
+
+    return { rsi, macd, sma50, sma200, overallSignal, goldenDeathCross, _candles };
 }
 
 /**
@@ -304,6 +311,106 @@ export async function fetchPeers(ticker: string, apiKey: string): Promise<PeerCo
         : `Avg peer P/E: ${avgPeerPE.toFixed(1)} — check if this ticker trades at a premium or discount to peers`;
 
     return { peers, relativeValuation };
+}
+
+
+/**
+ * Fetch analyst recommendation consensus from Finnhub (FREE endpoint).
+ */
+export async function fetchAnalystConsensus(ticker: string, apiKey: string): Promise<AnalystConsensus | null> {
+    try {
+        const res = await fetch(
+            `${BASE}/stock/recommendation?symbol=${encodeURIComponent(ticker)}&token=${apiKey}`
+        );
+        if (!res.ok) return null;
+
+        const data = (await res.json()) as Array<Record<string, number | string>>;
+        if (!data || data.length === 0) return null;
+
+        const latest = data[0];
+        const buy = Number(latest.buy) || 0;
+        const hold = Number(latest.hold) || 0;
+        const sell = Number(latest.sell) || 0;
+        const strongBuy = Number(latest.strongBuy) || 0;
+        const strongSell = Number(latest.strongSell) || 0;
+        const total = buy + hold + sell + strongBuy + strongSell;
+
+        let consensusRating: AnalystConsensus['consensusRating'] = 'Hold';
+        if (total > 0) {
+            const bullish = strongBuy + buy;
+            const bearish = strongSell + sell;
+            if (bullish > total * 0.6) consensusRating = strongBuy > buy ? 'Strong Buy' : 'Buy';
+            else if (bearish > total * 0.6) consensusRating = strongSell > sell ? 'Strong Sell' : 'Sell';
+        }
+
+        return {
+            buy, hold, sell, strongBuy, strongSell,
+            consensusRating,
+            period: String(latest.period || ''),
+        };
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Fetch analyst price targets from Finnhub (FREE endpoint).
+ */
+export async function fetchPriceTargets(ticker: string, apiKey: string, currentPrice: number): Promise<PriceTarget | null> {
+    try {
+        const res = await fetch(
+            `${BASE}/stock/price-target?symbol=${encodeURIComponent(ticker)}&token=${apiKey}`
+        );
+        if (!res.ok) return null;
+
+        const data = (await res.json()) as Record<string, number | string>;
+        if (!data || !data.targetHigh) return null;
+
+        const targetMean = Number(data.targetMean) || 0;
+        return {
+            targetHigh: Number(data.targetHigh) || 0,
+            targetLow: Number(data.targetLow) || 0,
+            targetMean,
+            targetMedian: Number(data.targetMedian) || 0,
+            numberOfAnalysts: Number(data.lastUpdated ? 1 : 0) || 0,
+            currentPrice,
+            upsidePercent: currentPrice > 0 ? Math.round(((targetMean - currentPrice) / currentPrice) * 10000) / 100 : 0,
+        };
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Fetch institutional ownership from Finnhub (FREE endpoint).
+ */
+export async function fetchInstitutionalOwnership(ticker: string, apiKey: string): Promise<InstitutionalOwnership | null> {
+    try {
+        const res = await fetch(
+            `${BASE}/institutional/ownership?symbol=${encodeURIComponent(ticker)}&limit=10&token=${apiKey}`
+        );
+        if (!res.ok) return null;
+
+        const data = (await res.json()) as { data?: Array<{ name: string; share: number; change: number; value: number }> };
+        if (!data?.data || data.data.length === 0) return null;
+
+        const holders: InstitutionalHolder[] = data.data.slice(0, 10).map(h => ({
+            name: h.name || 'Unknown',
+            shares: h.share || 0,
+            value: h.value || 0,
+            changePercent: h.change || 0,
+        }));
+
+        const totalShares = holders.reduce((s, h) => s + h.shares, 0);
+
+        return {
+            totalOwnership: totalShares,
+            holders,
+            totalHolders: data.data.length,
+        };
+    } catch {
+        return null;
+    }
 }
 
 
