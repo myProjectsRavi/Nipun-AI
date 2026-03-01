@@ -33,18 +33,22 @@ export default function AnalysisForm() {
 
             {/* Main form */}
             <div className="card p-8">
-                <div className="mb-6 text-center">
-                    <h2 className="mb-2 font-display text-2xl font-bold text-white">Analyze a Stock</h2>
-                    <p className="text-sm text-white/40">
-                        Enter a ticker symbol to generate a premium-grade analysis report
+                <div className="mb-8 text-center">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 border border-accent/20 shadow-glow">
+                        <span className="text-3xl">✨</span>
+                    </div>
+                    <h2 className="mb-2 font-display text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/60">Analyze a Stock</h2>
+                    <p className="text-sm text-white/50 max-w-sm mx-auto">
+                        Enter a ticker symbol to generate an ultra-premium, AI-driven financial manifesto.
                     </p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="relative">
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    <div className="relative group">
+                        <div className="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-accent to-gold opacity-30 blur-sm transition duration-500 group-hover:opacity-75"></div>
                         <input
                             type="text"
-                            className="input-field pr-24 text-center font-mono text-2xl font-bold tracking-wider uppercase"
+                            className="relative w-full rounded-xl border border-white/10 bg-[#0A0F1C] px-6 py-4 pr-24 text-center font-mono text-3xl font-black tracking-[0.2em] text-white placeholder-white/20 shadow-inner transition-all duration-300 focus:outline-none focus:border-accent/50 focus:bg-[#111827] focus:ring-1 focus:ring-accent/30"
                             placeholder="AAPL"
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value.toUpperCase())}
@@ -52,8 +56,8 @@ export default function AnalysisForm() {
                             autoFocus
                             id="ticker-input"
                         />
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                            <span className="text-xs text-white/25 font-mono">TICKER</span>
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                            <span className="rounded-md bg-white/5 px-2 py-1 font-mono text-[10px] font-bold tracking-widest text-white/30 border border-white/10">TICKER</span>
                         </div>
                     </div>
 

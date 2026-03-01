@@ -335,6 +335,24 @@ export const useStore = create<AppState>((set, get) => ({
         const { ticker, keys, demoMode } = get();
         if (!ticker) return;
 
+        // --- CACHE CHECK ---
+        if (!demoMode) {
+            try {
+                const cached = localStorage.getItem(`nipun_cache_${ticker}`);
+                if (cached) {
+                    const parsedData = JSON.parse(cached) as AnalysisResponse;
+                    const cacheTime = new Date(parsedData.timestamp).getTime();
+                    // 4 hours cache TTL
+                    if (Date.now() - cacheTime < 4 * 60 * 60 * 1000) {
+                        set({ result: parsedData, view: 'report', error: null, analysisPhase: '' });
+                        return; // Use cache
+                    }
+                }
+            } catch (e) {
+                // Ignore cache read errors
+            }
+        }
+
         set({ isAnalyzing: true, error: null, result: null, analysisPhase: '⚡ Collecting financial data, sentiment & risks...' });
 
         try {
@@ -356,6 +374,13 @@ export const useStore = create<AppState>((set, get) => ({
 
             set({ analysisPhase: '📊 Processing results...' });
             const data = (await res.json()) as AnalysisResponse;
+
+            // --- SAVE TO CACHE ---
+            if (!demoMode) {
+                try {
+                    localStorage.setItem(`nipun_cache_${ticker}`, JSON.stringify(data));
+                } catch (e) { }
+            }
 
             set({ result: data, view: 'report', analysisPhase: '' });
         } catch (err) {

@@ -167,16 +167,16 @@
 
   /* Section heading */
   .section-heading {
-    @apply font-display text-xs font-bold uppercase tracking-[0.15em] text-white/40;
+    @apply font-display text-sm font-bold uppercase tracking-[0.15em] text-white/50;
   }
 
   /* Stat label */
   .stat-label {
-    @apply text-[10px] font-body font-medium uppercase tracking-wider text-white/35;
+    @apply text-xs font-body font-semibold uppercase tracking-[0.1em] text-white/60 mb-1 block;
   }
 
   .stat-value {
-    @apply font-mono text-sm font-bold text-white/80;
+    @apply font-mono text-base font-bold text-white;
   }
 }
 
