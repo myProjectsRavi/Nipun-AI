@@ -11,6 +11,7 @@ export interface APIKeys {
     groq: string;
     gemini: string;
     cohere: string;
+    cerebras?: string;
 }
 
 async function deriveKey(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {

@@ -41,6 +41,14 @@ const KEY_PROVIDERS = [
         placeholder: 'Your Cohere API key',
         icon: '🔍',
     },
+    {
+        id: 'cerebras' as const,
+        name: 'Cerebras',
+        description: 'AI consensus (optional, free, no CC)',
+        url: 'https://cloud.cerebras.ai',
+        placeholder: 'Your Cerebras API key (optional)',
+        icon: '🤖',
+    },
 ];
 
 export default function KeyVault() {
@@ -51,6 +59,7 @@ export default function KeyVault() {
         groq: '',
         gemini: '',
         cohere: '',
+        cerebras: '',
     });
     const [passphrase, setPassphrase] = useState('');
     const [confirmPassphrase, setConfirmPassphrase] = useState('');

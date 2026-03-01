@@ -1,9 +1,11 @@
 import type { AnalysisRequest, AnalysisResponse, Env } from './types';
-import { fetchFinancials } from './finnhub';
+import { fetchFinancials, fetchTechnicalIndicators, fetchInsiderTrades, fetchEarningsSurprises, fetchPeers } from './finnhub';
 import { fetchRedditPosts } from './rss';
 import { analyzeSentiment } from './groq';
 import { extractRisks, synthesizeReport } from './gemini';
 import { auditReport } from './cohere';
+import { fetchSECFilings } from './edgar';
+import { generateSecondOpinion } from './cerebras';
 import {
     getMockFinancials,
     getMockSentiment,
@@ -11,6 +13,12 @@ import {
     getMockCatalysts,
     getMockAudit,
     getMockReport,
+    getMockTechnicals,
+    getMockInsiderActivity,
+    getMockEarnings,
+    getMockPeers,
+    getMockSECFilings,
+    getMockAIConsensus,
 } from './mock';
 
 const DISCLAIMER =
@@ -28,7 +36,7 @@ export default {
             return handleCORS(
                 request,
                 env,
-                Response.json({ status: 'ok', service: 'nipun-ai-worker', version: '1.0.0' })
+                Response.json({ status: 'ok', service: 'nipun-ai-worker', version: '2.0.0' })
             );
         }
 
@@ -48,7 +56,7 @@ export default {
 
                 const upperTicker = ticker.toUpperCase().trim();
 
-                // Check if we should use demo mode (any key missing = demo)
+                // Check if we should use demo mode (any required key missing = demo)
                 const isDemo =
                     !keys ||
                     !keys.finnhub ||
@@ -67,47 +75,103 @@ export default {
                         sentiment: getMockSentiment(upperTicker),
                         risks: getMockRisks(upperTicker),
                         catalysts: getMockCatalysts(upperTicker),
+                        technicals: getMockTechnicals(upperTicker),
+                        insiderActivity: getMockInsiderActivity(upperTicker),
+                        earnings: getMockEarnings(upperTicker),
+                        peerComparison: getMockPeers(upperTicker),
+                        secFilings: getMockSECFilings(upperTicker),
+                        aiConsensus: getMockAIConsensus(upperTicker),
                         report: getMockReport(upperTicker),
                         audit: getMockAudit(upperTicker),
                         disclaimer: DISCLAIMER,
                         isDemo: true,
                     };
                 } else {
-                    // ── LIVE MODE: Full 5-phase pipeline ─────────────────
+                    // ── LIVE MODE: Full enhanced pipeline ─────────────────
                     // Each phase has graceful fallback to mock data if API fails
 
-                    // Phase 2a: Financials (Finnhub)
+                    // Phase 1a: Core Financials (Finnhub)
                     let financials;
                     try {
                         financials = await fetchFinancials(upperTicker, keys.finnhub);
                     } catch (err) {
-                        console.error('Finnhub failed, using mock:', err);
+                        console.error('Finnhub financials failed, using mock:', err);
                         financials = getMockFinancials(upperTicker);
                     }
 
-                    // Phase 2b: Sentiment (Reddit RSS → Groq)
-                    let sentiment;
-                    try {
-                        const posts = await fetchRedditPosts(upperTicker);
-                        sentiment = await analyzeSentiment(upperTicker, posts, keys.groq);
-                    } catch (err) {
-                        console.error('Groq sentiment failed, using mock:', err);
-                        sentiment = getMockSentiment(upperTicker);
-                    }
+                    // Phase 1b-1e: Parallel extended data collection
+                    const [sentiment, risksResult, technicals, insiderActivity, earnings, peers, secFilings] =
+                        await Promise.all([
+                            // Sentiment (Reddit RSS → Groq)
+                            (async () => {
+                                try {
+                                    const posts = await fetchRedditPosts(upperTicker);
+                                    return await analyzeSentiment(upperTicker, posts, keys.groq);
+                                } catch (err) {
+                                    console.error('Sentiment failed, using mock:', err);
+                                    return getMockSentiment(upperTicker);
+                                }
+                            })(),
+                            // Risks & Catalysts (Gemini)
+                            (async () => {
+                                try {
+                                    return await extractRisks(upperTicker, keys.gemini);
+                                } catch (err) {
+                                    console.error('Gemini risks failed, using mock:', err);
+                                    return { risks: getMockRisks(upperTicker), catalysts: getMockCatalysts(upperTicker) };
+                                }
+                            })(),
+                            // Technical Indicators (Finnhub)
+                            (async () => {
+                                try {
+                                    return await fetchTechnicalIndicators(upperTicker, keys.finnhub);
+                                } catch (err) {
+                                    console.error('Technical indicators failed, using mock:', err);
+                                    return getMockTechnicals(upperTicker);
+                                }
+                            })(),
+                            // Insider Trades (Finnhub)
+                            (async () => {
+                                try {
+                                    return await fetchInsiderTrades(upperTicker, keys.finnhub);
+                                } catch (err) {
+                                    console.error('Insider trades failed, using mock:', err);
+                                    return getMockInsiderActivity(upperTicker);
+                                }
+                            })(),
+                            // Earnings Surprises (Finnhub)
+                            (async () => {
+                                try {
+                                    return await fetchEarningsSurprises(upperTicker, keys.finnhub);
+                                } catch (err) {
+                                    console.error('Earnings failed, using mock:', err);
+                                    return getMockEarnings(upperTicker);
+                                }
+                            })(),
+                            // Peer Comparison (Finnhub)
+                            (async () => {
+                                try {
+                                    return await fetchPeers(upperTicker, keys.finnhub);
+                                } catch (err) {
+                                    console.error('Peers failed, using mock:', err);
+                                    return getMockPeers(upperTicker);
+                                }
+                            })(),
+                            // SEC Filings (EDGAR — no key needed)
+                            (async () => {
+                                try {
+                                    return await fetchSECFilings(upperTicker);
+                                } catch (err) {
+                                    console.error('SEC filings failed:', err);
+                                    return getMockSECFilings(upperTicker);
+                                }
+                            })(),
+                        ]);
 
-                    // Phase 2c: Risks & Catalysts (Gemini)
-                    let risks, catalysts;
-                    try {
-                        const risksData = await extractRisks(upperTicker, keys.gemini);
-                        risks = risksData.risks;
-                        catalysts = risksData.catalysts;
-                    } catch (err) {
-                        console.error('Gemini risk extraction failed, using mock:', err);
-                        risks = getMockRisks(upperTicker);
-                        catalysts = getMockCatalysts(upperTicker);
-                    }
+                    const risks = risksResult.risks;
+                    const catalysts = risksResult.catalysts;
 
-                    // Phase 3: Synthesis (Gemini)
+                    // Phase 2: Synthesis (Gemini)
                     let report;
                     try {
                         report = await synthesizeReport(financials, sentiment, risks, catalysts, keys.gemini);
@@ -116,7 +180,17 @@ export default {
                         report = getMockReport(upperTicker);
                     }
 
-                    // Phase 4: Fact audit (Cohere) — already non-fatal
+                    // Phase 3a: AI Consensus (Cerebras — optional)
+                    let aiConsensus = null;
+                    if (keys.cerebras) {
+                        try {
+                            aiConsensus = await generateSecondOpinion(financials, sentiment, risks, catalysts, report, keys.cerebras);
+                        } catch (err) {
+                            console.error('Cerebras consensus failed (non-fatal):', err);
+                        }
+                    }
+
+                    // Phase 3b: Fact audit (Cohere — non-fatal)
                     let audit = null;
                     try {
                         audit = await auditReport(report, financials, keys.cohere);
@@ -131,6 +205,12 @@ export default {
                         sentiment,
                         risks,
                         catalysts,
+                        technicals,
+                        insiderActivity,
+                        earnings,
+                        peerComparison: peers,
+                        secFilings,
+                        aiConsensus,
                         report,
                         audit,
                         disclaimer: DISCLAIMER,
@@ -164,7 +244,6 @@ function handleCORS(request: Request, env: Env, response: Response): Response {
     const origin = request.headers.get('Origin') || '';
     const allowed = (env.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim());
 
-    // Allow if origin matches any allowed origin, or allow all in dev
     const isAllowed = allowed.includes(origin) || allowed.includes('*');
     const corsOrigin = isAllowed ? origin : allowed[0] || '*';
 

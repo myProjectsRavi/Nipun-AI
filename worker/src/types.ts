@@ -23,6 +23,91 @@ export interface FinancialData {
     sector: string;
 }
 
+// ─── Technical Indicators ──────────────────────────────────────────
+export interface TechnicalSignal {
+    name: string;
+    value: number;
+    signal: 'bullish' | 'bearish' | 'neutral';
+    interpretation: string;
+}
+
+export interface TechnicalAnalysis {
+    rsi: TechnicalSignal;
+    macd: TechnicalSignal;
+    sma50: TechnicalSignal;
+    sma200: TechnicalSignal;
+    overallSignal: 'bullish' | 'bearish' | 'neutral';
+    goldenDeathCross: string | null;
+}
+
+// ─── Insider Trading ───────────────────────────────────────────────
+export interface InsiderTrade {
+    name: string;
+    role: string;
+    transactionType: 'buy' | 'sell' | 'exercise';
+    shares: number;
+    price: number;
+    value: number;
+    date: string;
+}
+
+export interface InsiderActivity {
+    trades: InsiderTrade[];
+    netSentiment: 'bullish' | 'bearish' | 'neutral';
+    totalBuyValue: number;
+    totalSellValue: number;
+    summary: string;
+}
+
+// ─── Earnings Surprises ────────────────────────────────────────────
+export interface EarningsSurprise {
+    quarter: string;
+    estimateEps: number;
+    actualEps: number;
+    surprise: number;
+    surprisePercent: number;
+    beat: boolean;
+}
+
+export interface EarningsData {
+    surprises: EarningsSurprise[];
+    streak: string;
+    nextEarningsDate: string | null;
+}
+
+// ─── Peer Comparison ───────────────────────────────────────────────
+export interface PeerMetrics {
+    ticker: string;
+    price: number;
+    marketCap: number;
+    pe: number;
+    eps: number;
+    change: number;
+}
+
+export interface PeerComparison {
+    peers: PeerMetrics[];
+    relativeValuation: string;
+}
+
+// ─── SEC Filings ───────────────────────────────────────────────────
+export interface SECFiling {
+    type: string;
+    dateFiled: string;
+    description: string;
+    url: string;
+}
+
+// ─── AI Consensus ──────────────────────────────────────────────────
+export interface AIConsensus {
+    geminiVerdict: string;
+    secondaryVerdict: string;
+    secondaryModel: string;
+    agreementScore: number;
+    divergences: string[];
+    consensusSummary: string;
+}
+
 // ─── Sentiment (Groq) ─────────────────────────────────────────────
 export interface SentimentPost {
     title: string;
@@ -72,6 +157,7 @@ export interface AnalysisKeys {
     groq: string;
     gemini: string;
     cohere: string;
+    cerebras?: string;
 }
 
 export interface AnalysisRequest {
@@ -86,6 +172,12 @@ export interface AnalysisResponse {
     sentiment: SentimentResult;
     risks: RiskFactor[];
     catalysts: Catalyst[];
+    technicals: TechnicalAnalysis | null;
+    insiderActivity: InsiderActivity | null;
+    earnings: EarningsData | null;
+    peerComparison: PeerComparison | null;
+    secFilings: SECFiling[] | null;
+    aiConsensus: AIConsensus | null;
     report: string;
     audit: AuditResult | null;
     disclaimer: string;
