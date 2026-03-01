@@ -22,101 +22,46 @@ import type {
     DividendAnalysis,
 } from './types';
 
-// ─── Mock Financial Data (AAPL) ────────────────────────────────────
-export function getMockFinancials(ticker: string): FinancialData {
-    return {
-        ticker: ticker.toUpperCase(),
-        companyName: ticker.toUpperCase() === 'AAPL' ? 'Apple Inc.' : `${ticker.toUpperCase()} Corp`,
-        price: 178.72,
-        change: 2.35,
-        changePercent: 1.33,
-        open: 176.15,
-        high: 179.2,
-        low: 175.82,
-        previousClose: 176.37,
-        volume: 52438100,
-        marketCap: 2780000000000,
-        pe: 28.52,
-        eps: 6.27,
-        beta: 1.24,
-        weekHigh52: 199.62,
-        weekLow52: 164.08,
-        revenue: 383290000000,
-        grossMargin: 45.96,
-        debtToEquity: 1.87,
-        dividendYield: 0.55,
-        sector: 'Technology',
-    };
+// ─── Ticker-Aware Company Profiles ─────────────────────────────────
+interface CompanyProfile {
+    name: string;
+    price: number; change: number; changePercent: number;
+    open: number; high: number; low: number; previousClose: number;
+    volume: number; marketCap: number; pe: number; eps: number; beta: number;
+    weekHigh52: number; weekLow52: number; revenue: number; grossMargin: number;
+    debtToEquity: number; dividendYield: number; sector: string;
+    executives: { name: string; role: string; type: 'buy' | 'sell' | 'exercise'; shares: number; price: number; value: number }[];
+    peers: { ticker: string; price: number; marketCap: number; pe: number; eps: number; change: number }[];
+    revenueSegments: { name: string; revenue: number; percent: number; growth: number }[];
+    moatSources: { name: string; strength: string; description: string }[];
+    risks: RiskFactor[];
+    catalysts: Catalyst[];
+    themes: string[];
+    nipunGrade: string; nipunNumeric: number; nipunConfidence: number;
+    investmentSignal: 'Strong Buy' | 'Buy' | 'Hold' | 'Sell' | 'Strong Sell';
+    investmentOverall: number;
+    strengths: string[];
+    weaknesses: string[];
+    bullPrice: number; basePrice: number; bearPrice: number;
+    moatRating: string; moatScore: number; moatDurability: string;
+    classification: string; valueScore: number; growthScore: number;
+    pegRatio: number; priceToBook: number; priceToSales: number; epsGrowth5Y: number; revenueGrowth5Y: number;
+    dividendYieldVal: number; annualDividend: number; payoutRatio: number; divGrowth5Y: number; divYears: number; divSafety: string;
 }
 
-// ─── Mock Technical Analysis ───────────────────────────────────────
-export function getMockTechnicals(_ticker: string): TechnicalAnalysis {
-    return {
-        rsi: {
-            name: 'RSI (14)',
-            value: 58.3,
-            signal: 'neutral',
-            interpretation: 'Neutral territory (58.3) — no strong RSI signal',
-        },
-        macd: {
-            name: 'MACD',
-            value: 1.24,
-            signal: 'bullish',
-            interpretation: 'MACD histogram positive — bullish momentum building',
-        },
-        sma50: {
-            name: 'SMA 50',
-            value: 174.85,
-            signal: 'bullish',
-            interpretation: 'Price ($178.72) above 50-day SMA ($174.85) — short-term uptrend',
-        },
-        sma200: {
-            name: 'SMA 200',
-            value: 171.20,
-            signal: 'bullish',
-            interpretation: 'Price above 200-day SMA ($171.20) — long-term uptrend',
-        },
-        overallSignal: 'bullish',
-        goldenDeathCross: '🟢 Golden Cross — 50-day SMA above 200-day SMA (bullish long-term signal)',
-    };
-}
-
-// ─── Mock Insider Activity ─────────────────────────────────────────
-export function getMockInsiderActivity(_ticker: string): InsiderActivity {
-    return {
-        trades: [
-            { name: 'Tim Cook', role: 'CEO', transactionType: 'sell', shares: 50000, price: 177.50, value: 8875000, date: '2026-02-15' },
-            { name: 'Jeff Williams', role: 'COO', transactionType: 'sell', shares: 25000, price: 176.80, value: 4420000, date: '2026-02-10' },
-            { name: 'Luca Maestri', role: 'CFO', transactionType: 'exercise', shares: 100000, price: 145.00, value: 14500000, date: '2026-01-28' },
-            { name: 'Deirdre O\'Brien', role: 'SVP Retail', transactionType: 'buy', shares: 5000, price: 172.30, value: 861500, date: '2026-01-20' },
-            { name: 'Craig Federighi', role: 'SVP Software', transactionType: 'sell', shares: 15000, price: 175.20, value: 2628000, date: '2026-01-15' },
+const PROFILES: Record<string, CompanyProfile> = {
+    AAPL: {
+        name: 'Apple Inc.', price: 178.72, change: 2.35, changePercent: 1.33,
+        open: 176.15, high: 179.2, low: 175.82, previousClose: 176.37,
+        volume: 52438100, marketCap: 2780000000000, pe: 28.52, eps: 6.27, beta: 1.24,
+        weekHigh52: 199.62, weekLow52: 164.08, revenue: 383290000000, grossMargin: 45.96,
+        debtToEquity: 1.87, dividendYield: 0.55, sector: 'Technology',
+        executives: [
+            { name: 'Tim Cook', role: 'CEO', type: 'sell', shares: 50000, price: 177.50, value: 8875000 },
+            { name: 'Jeff Williams', role: 'COO', type: 'sell', shares: 25000, price: 176.80, value: 4420000 },
+            { name: 'Luca Maestri', role: 'CFO', type: 'exercise', shares: 100000, price: 145.00, value: 14500000 },
+            { name: 'Deirdre O\'Brien', role: 'SVP Retail', type: 'buy', shares: 5000, price: 172.30, value: 861500 },
         ],
-        netSentiment: 'bearish',
-        totalBuyValue: 861500,
-        totalSellValue: 15923000,
-        summary: '1 buy, 3 sells, 1 exercise in recent filings — net insider selling',
-    };
-}
-
-// ─── Mock Earnings Data ────────────────────────────────────────────
-export function getMockEarnings(_ticker: string): EarningsData {
-    return {
-        surprises: [
-            { quarter: '2025-Q4', estimateEps: 2.35, actualEps: 2.40, surprise: 0.05, surprisePercent: 2.13, beat: true },
-            { quarter: '2025-Q3', estimateEps: 1.39, actualEps: 1.46, surprise: 0.07, surprisePercent: 5.04, beat: true },
-            { quarter: '2025-Q2', estimateEps: 1.50, actualEps: 1.53, surprise: 0.03, surprisePercent: 2.00, beat: true },
-            { quarter: '2025-Q1', estimateEps: 1.27, actualEps: 1.40, surprise: 0.13, surprisePercent: 10.24, beat: true },
-            { quarter: '2024-Q4', estimateEps: 2.10, actualEps: 2.18, surprise: 0.08, surprisePercent: 3.81, beat: true },
-            { quarter: '2024-Q3', estimateEps: 1.35, actualEps: 1.46, surprise: 0.11, surprisePercent: 8.15, beat: true },
-        ],
-        streak: '6-quarter beat streak 🔥',
-        nextEarningsDate: '2026-04-30',
-    };
-}
-
-// ─── Mock Peer Comparison ──────────────────────────────────────────
-export function getMockPeers(_ticker: string): PeerComparison {
-    return {
         peers: [
             { ticker: 'MSFT', price: 415.80, marketCap: 3090000000000, pe: 34.2, eps: 12.15, change: 0.85 },
             { ticker: 'GOOGL', price: 172.50, marketCap: 2130000000000, pe: 24.8, eps: 6.96, change: -0.42 },
@@ -124,196 +69,38 @@ export function getMockPeers(_ticker: string): PeerComparison {
             { ticker: 'META', price: 585.40, marketCap: 1480000000000, pe: 26.3, eps: 22.26, change: 0.67 },
             { ticker: 'NVDA', price: 875.20, marketCap: 2150000000000, pe: 58.7, eps: 14.91, change: 2.15 },
         ],
-        relativeValuation: 'AAPL P/E (28.5) vs avg peer P/E (37.2) — trading at a 23% discount to mega-cap tech peers, suggesting relative value',
-    };
-}
-
-// ─── Mock SEC Filings ──────────────────────────────────────────────
-export function getMockSECFilings(_ticker: string): SECFiling[] {
-    return [
-        { type: '10-Q', dateFiled: '2026-02-01', description: 'Quarterly Report - Q1 FY2026', url: 'https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=AAPL&type=10-Q' },
-        { type: '8-K', dateFiled: '2026-01-30', description: 'Current Report - Q1 FY2026 Earnings', url: 'https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=AAPL&type=8-K' },
-        { type: '4', dateFiled: '2026-01-28', description: 'Statement of Changes in Beneficial Ownership (Luca Maestri)', url: 'https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=AAPL&type=4' },
-        { type: '10-K', dateFiled: '2025-11-01', description: 'Annual Report - FY2025', url: 'https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=AAPL&type=10-K' },
-        { type: 'DEF 14A', dateFiled: '2025-12-15', description: 'Definitive Proxy Statement - Annual Meeting', url: 'https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=AAPL&type=DEF+14A' },
-    ];
-}
-
-// ─── Mock AI Consensus ─────────────────────────────────────────────
-export function getMockAIConsensus(_ticker: string): AIConsensus {
-    return {
-        geminiVerdict: 'bullish',
-        secondaryVerdict: 'neutral',
-        secondaryModel: 'Cerebras Llama 3.3 70B',
-        agreementScore: 68,
-        divergences: [
-            'Gemini sees bullish outlook vs Cerebras sees neutral outlook',
-            'Cerebras weights China exposure risk higher than Gemini',
-            'Disagreement on whether current P/E premium is justified by AI integration upside',
+        revenueSegments: [
+            { name: 'iPhone', revenue: 200770000000, percent: 52.4, growth: 3.8 },
+            { name: 'Services', revenue: 85200000000, percent: 22.2, growth: 16.3 },
+            { name: 'Mac', revenue: 29360000000, percent: 7.7, growth: 8.1 },
+            { name: 'iPad', revenue: 28300000000, percent: 7.4, growth: -3.2 },
+            { name: 'Wearables & Home', revenue: 39660000000, percent: 10.3, growth: 2.5 },
         ],
-        consensusSummary: 'AI models partially diverge: Gemini is bullish while Cerebras (Llama 3.3 70B) is neutral. Key disagreement centers on whether Apple\'s AI integration strategy justifies the current premium valuation given macro headwinds.',
-    };
-}
-
-// ─── Mock Sentiment Data (~65% Bullish) ────────────────────────────
-export function getMockSentiment(ticker: string): SentimentResult {
-    const posts = [
-        { title: `${ticker} is going to $250 by year end 🚀`, sentiment: 'Bullish' as const, theme: 'Price target optimism' },
-        { title: `Just loaded up on more ${ticker} calls`, sentiment: 'Bullish' as const, theme: 'Options activity' },
-        { title: `${ticker} AI integration is game-changing`, sentiment: 'Bullish' as const, theme: 'AI product integration' },
-        { title: `Services revenue for ${ticker} is unstoppable`, sentiment: 'Bullish' as const, theme: 'Services growth' },
-        { title: `${ticker} India manufacturing expansion is huge`, sentiment: 'Bullish' as const, theme: 'Geographic diversification' },
-        { title: `Bought the dip on ${ticker}, holding long`, sentiment: 'Bullish' as const, theme: 'Buy-the-dip sentiment' },
-        { title: `${ticker} iPhone sales beating expectations`, sentiment: 'Bullish' as const, theme: 'iPhone sales growth' },
-        { title: `${ticker} wearables segment is undervalued`, sentiment: 'Bullish' as const, theme: 'Wearables potential' },
-        { title: `${ticker} PE ratio is getting stretched`, sentiment: 'Bearish' as const, theme: 'Valuation concern' },
-        { title: `China risk for ${ticker} is underestimated`, sentiment: 'Bearish' as const, theme: 'China market risk' },
-        { title: `Competition heating up against ${ticker}`, sentiment: 'Bearish' as const, theme: 'Competitive pressure' },
-        { title: `${ticker} innovation has stalled`, sentiment: 'Bearish' as const, theme: 'Innovation plateau' },
-        { title: `Waiting for ${ticker} earnings before deciding`, sentiment: 'Neutral' as const, theme: 'Earnings anticipation' },
-        { title: `${ticker} chart looks interesting here`, sentiment: 'Neutral' as const, theme: 'Technical analysis' },
-        { title: `${ticker} dividend is steady but nothing exciting`, sentiment: 'Neutral' as const, theme: 'Dividend stability' },
-    ];
-
-    return {
-        bullishPercent: 65,
-        bearishPercent: 22,
-        neutralPercent: 13,
-        totalPosts: 50,
-        posts,
-        themes: [
-            'iPhone sales growth',
-            'Services revenue expansion',
-            'AI integration in products',
-            'Vision Pro adoption',
-            'China market concerns',
-            'Valuation debate',
+        moatSources: [
+            { name: 'Ecosystem Lock-in', strength: 'strong', description: '2B+ active devices create massive switching costs. iMessage, AirDrop, Handoff chain users.' },
+            { name: 'Brand Premium', strength: 'strong', description: 'Commands 30-40% price premium. Brand value ~$880B — world\'s most valuable.' },
+            { name: 'Services Network Effect', strength: 'moderate', description: 'App Store, Apple Music, iCloud — 1B+ paid subscriptions creating recurring revenue.' },
+            { name: 'Custom Silicon', strength: 'strong', description: 'M-series/A-series chips provide 2-3 year performance lead. Vertical integration cuts costs.' },
         ],
-    };
-}
-
-// ─── Mock Risk Factors ─────────────────────────────────────────────
-export function getMockRisks(_ticker: string): RiskFactor[] {
-    return [
-        { category: 'regulatory', description: 'EU Digital Markets Act enforcement could require significant changes to App Store policies, potentially impacting Services revenue which accounts for ~22% of total revenue.', severity: 'medium' },
-        { category: 'competitive', description: 'Samsung and Google are rapidly integrating on-device AI capabilities into their smartphone ecosystems, narrowing the AI feature gap.', severity: 'medium' },
-        { category: 'macro', description: 'Persistent elevated interest rates and consumer credit tightening could reduce demand for premium-priced devices. Smartphone replacement cycles extending to 4+ years.', severity: 'high' },
-        { category: 'company-specific', description: 'Greater China revenue (~18% of total) faces headwinds from Huawei\'s resurgence and potential US-China trade restrictions.', severity: 'high' },
-    ];
-}
-
-// ─── Mock Catalysts ────────────────────────────────────────────────
-export function getMockCatalysts(_ticker: string): Catalyst[] {
-    return [
-        { description: 'WWDC 2026 expected to unveil next-generation Apple Intelligence features including advanced on-device LLM capabilities and Siri overhaul.', timeline: 'June 2026', impact: 'positive' },
-        { description: 'iPhone 17 launch with significant design refresh and AI-first camera system. Analysts project potential super-cycle.', timeline: 'Sep 2026', impact: 'positive' },
-        { description: 'Services segment approaching $100B annual run rate milestone with accelerating subscription growth.', timeline: 'Q3 2026', impact: 'positive' },
-        { description: 'India manufacturing expansion with Tata Electronics and Foxconn doubling local production capacity.', timeline: 'H2 2026', impact: 'positive' },
-    ];
-}
-
-// ─── Mock Audit Result ─────────────────────────────────────────────
-export function getMockAudit(_ticker: string): AuditResult {
-    return {
-        claims: [
-            { claim: 'Current P/E ratio stands at 28.52', status: 'grounded', source: 'Finnhub API' },
-            { claim: 'Revenue reached $383.29 billion', status: 'grounded', source: 'Finnhub API' },
-            { claim: 'Gross margin of 45.96% demonstrates pricing power', status: 'grounded', source: 'Finnhub API' },
-            { claim: 'Services revenue approaching $100B annual run rate', status: 'grounded', source: 'Q1 2026 Earnings Call' },
-            { claim: 'Social sentiment is predominantly bullish at 65%', status: 'grounded', source: 'Reddit RSS Analysis' },
-            { claim: 'iPhone 17 could drive a super-cycle', status: 'speculative', source: 'Analyst consensus' },
-            { claim: 'AI features will significantly boost Services ARPU', status: 'speculative', source: 'Industry analysis' },
-            { claim: 'India manufacturing will offset China risks', status: 'speculative', source: 'Supply chain reports' },
+        risks: [
+            { category: 'regulatory', description: 'EU Digital Markets Act could force App Store policy changes, impacting ~22% Services revenue.', severity: 'medium' },
+            { category: 'competitive', description: 'Samsung and Google rapidly integrating on-device AI, narrowing the AI feature gap.', severity: 'medium' as const },
+            { category: 'macro', description: 'Elevated interest rates and consumer credit tightening reduce premium device demand. Replacement cycles extending to 4+ years.', severity: 'high' },
+            { category: 'company-specific', description: 'Greater China revenue (~18%) faces headwinds from Huawei resurgence and US-China trade restrictions.', severity: 'high' },
         ],
-        groundedCount: 5,
-        speculativeCount: 3,
-        unverifiableCount: 0,
-    };
-}
-
-// ─── Mock Synthesis Report ─────────────────────────────────────────
-export function getMockReport(ticker: string): string {
-    return `# ${ticker.toUpperCase()} — Institutional-Grade Analysis Report
-
-## Executive Summary
-
-Apple Inc. (${ticker.toUpperCase()}) continues to demonstrate resilient financial performance amid a complex macroeconomic environment. Trading at $178.72 with a market capitalization of $2.78 trillion, the company maintains its position as the world's most valuable public company.
-
-## Financial Health Assessment
-
-Apple's fundamentals remain robust. Revenue of $383.29 billion with a gross margin of 45.96%, reflecting continued pricing power. P/E ratio of 28.52 with EPS of $6.27 suggests the stock trades at a premium, within its historical range for a mega-cap tech company.
-
-Debt-to-equity ratio of 1.87 is strategic — Apple uses debt for buybacks and dividends. The 0.55% dividend yield is complemented by the industry's largest share repurchase program. Beta of 1.24 indicates slightly higher volatility than market. Stock trades 10.5% below its 52-week high of $199.62.
-
-## Social Sentiment Analysis
-
-Analysis of 50 posts from r/wallstreetbets, r/stocks, and r/investing reveals 65% bullish, 22% bearish, 13% neutral. Key bullish themes: iPhone sales momentum, Services revenue expansion, Apple Intelligence AI features. Bearish: valuation concerns and China dependency.
-
-## Risk Factor Analysis
-
-**High Severity:** Macro headwinds from elevated interest rates and consumer credit tightening. Greater China revenue (~18%) faces Huawei competition and geopolitical risks.
-
-**Medium Severity:** EU Digital Markets Act could impact App Store policies. Samsung/Google AI features narrowing competitive gap.
-
-## Catalyst Outlook
-
-WWDC 2026 (June): Next-gen Apple Intelligence and Siri overhaul. iPhone 17 (September): Design refresh with potential super-cycle. Services approaching $100B run rate. India manufacturing expansion reducing China concentration.
-
-## Conclusion
-
-Balanced risk-reward profile. Strong fundamentals, supportive sentiment, multiple catalysts. Macro headwinds and China risks warrant careful positioning. P/E premium justified by ecosystem moat and Services growth.
-
-*This report was generated by Nipun AI using verified financial data and multi-AI analysis.*
-
----
-
-**⚠️ DISCLAIMER: This is not financial advice. This report is for educational and informational purposes only. Always conduct your own research and consult with a qualified financial advisor before making investment decisions.**`;
-}
-
-// ─── Mock Investment Score ─────────────────────────────────────────
-export function getMockInvestmentScore(_ticker: string): InvestmentScore {
-    return {
-        overall: 72,
-        signal: 'Buy',
-        breakdown: {
-            technicalScore: 75,
-            fundamentalScore: 80,
-            sentimentScore: 65,
-            riskScore: 58,
-            insiderScore: 40,
-        },
-        summary: 'Strong fundamentals (P/E discount vs peers, 45.96% margin) and bullish technicals offset by net insider selling and macro risk headwinds.',
-    };
-}
-
-// ─── Mock Financial Health ─────────────────────────────────────────
-export function getMockFinancialHealth(_ticker: string): FinancialHealth {
-    return {
-        altmanZScore: 5.82,
-        altmanZone: 'safe',
-        piotroskiFScore: 7,
-        piotroskiRating: 'strong',
-        currentRatio: 1.07,
-        quickRatio: 1.01,
-        interestCoverage: 29.3,
-        pricePositionPercent: 41.2,
-        volatilityCategory: 'moderate',
-        healthSummary: 'Excellent financial health — strong Altman Z (5.82, safe zone) and Piotroski F-Score (7/9, strong). High interest coverage (29.3x) indicates minimal debt risk. Stock trades at 41% of its 52-week range.',
-    };
-}
-
-// ─── Mock Nipun Score™ ─────────────────────────────────────────────
-export function getMockNipunScore(_ticker: string): NipunScore {
-    return {
-        grade: 'A-',
-        numericScore: 82,
-        confidence: 78,
-        verdict: 'Strong conviction buy with moderate risk — premium fundamentals, bullish technicals, and solid institutional sentiment offset by elevated valuation and China exposure.',
+        catalysts: [
+            { description: 'WWDC 2026: Next-gen Apple Intelligence with advanced on-device LLM and Siri overhaul.', timeline: 'June 2026', impact: 'positive' },
+            { description: 'iPhone 17 launch with significant design refresh and AI-first camera. Analysts project super-cycle.', timeline: 'Sep 2026', impact: 'positive' },
+            { description: 'Services approaching $100B ARR milestone with accelerating subscription growth.', timeline: 'Q3 2026', impact: 'positive' },
+        ],
+        themes: ['iPhone sales growth', 'Services expansion', 'Apple Intelligence AI', 'Vision Pro adoption', 'China risk', 'Valuation'],
+        nipunGrade: 'A-', nipunNumeric: 82, nipunConfidence: 78,
+        investmentSignal: 'Buy', investmentOverall: 72,
         strengths: [
             'Industry-leading gross margins (45.96%) demonstrating pricing power',
-            '6-quarter consecutive earnings beat streak with upside surprises',
+            '6-quarter consecutive earnings beat streak',
             'Golden Cross pattern — bullish long-term technical signal',
-            'Services revenue approaching $100B ARR provides recurring income moat',
+            'Services revenue approaching $100B ARR — recurring income moat',
             'Trading at 23% P/E discount vs mega-cap tech peers',
         ],
         weaknesses: [
@@ -322,125 +109,492 @@ export function getMockNipunScore(_ticker: string): NipunScore {
             'Smartphone replacement cycles extending to 4+ years',
             'EU regulatory headwinds could impact App Store economics',
         ],
-        recommendation: 'Accumulate on pullbacks to $170-175 range. Set stop-loss at $160 (52W low support). Target $210-220 within 12 months based on iPhone 17 cycle catalyst.',
+        bullPrice: 225, basePrice: 195, bearPrice: 150,
+        moatRating: 'Wide' as const, moatScore: 88, moatDurability: 'high',
+        classification: 'Growth', valueScore: 42, growthScore: 71,
+        pegRatio: 2.1, priceToBook: 48.5, priceToSales: 7.3, epsGrowth5Y: 13.8, revenueGrowth5Y: 8.2,
+        dividendYieldVal: 0.55, annualDividend: 0.96, payoutRatio: 15.3, divGrowth5Y: 5.8, divYears: 12, divSafety: 'very-safe' as const,
+    },
+    MSFT: {
+        name: 'Microsoft Corporation', price: 392.74, change: -8.98, changePercent: -2.24,
+        open: 400.15, high: 401.80, low: 391.50, previousClose: 401.72,
+        volume: 28934200, marketCap: 2920000000000, pe: 24.5, eps: 15.98, beta: 0.89,
+        weekHigh52: 468.35, weekLow52: 362.90, revenue: 245122000000, grossMargin: 69.35,
+        debtToEquity: 0.42, dividendYield: 0.76, sector: 'Technology',
+        executives: [
+            { name: 'Satya Nadella', role: 'CEO', type: 'sell', shares: 30000, price: 410.00, value: 12300000 },
+            { name: 'Amy Hood', role: 'CFO', type: 'sell', shares: 18000, price: 405.50, value: 7299000 },
+            { name: 'Brad Smith', role: 'Vice Chair', type: 'exercise', shares: 50000, price: 350.00, value: 17500000 },
+            { name: 'Judson Althoff', role: 'EVP & CCO', type: 'buy', shares: 3000, price: 395.00, value: 1185000 },
+        ],
+        peers: [
+            { ticker: 'ORCL', price: 145.40, marketCap: 418000000000, pe: 27.1, eps: 5.32, change: -3.27 },
+            { ticker: 'PANW', price: 148.92, marketCap: 122000000000, pe: 94.8, eps: 1.81, change: -0.32 },
+            { ticker: 'NOW', price: 108.01, marketCap: 113000000000, pe: 64.6, eps: 1.67, change: -1.18 },
+            { ticker: 'CRWD', price: 371.98, marketCap: 94000000000, pe: -1, eps: -1.26, change: -2.39 },
+            { ticker: 'FTNT', price: 79.03, marketCap: 58000000000, pe: 31.6, eps: 2.43, change: -0.21 },
+        ],
+        revenueSegments: [
+            { name: 'Intelligent Cloud (Azure)', revenue: 96800000000, percent: 39.5, growth: 29.2 },
+            { name: 'Productivity & Business (Office 365)', revenue: 77100000000, percent: 31.4, growth: 12.8 },
+            { name: 'More Personal Computing (Windows)', revenue: 58200000000, percent: 23.8, growth: 4.1 },
+            { name: 'LinkedIn', revenue: 16500000000, percent: 6.7, growth: 8.5 },
+            { name: 'Gaming (Xbox)', revenue: 21800000000, percent: 8.9, growth: -2.3 },
+        ],
+        moatSources: [
+            { name: 'Enterprise Lock-in', strength: 'strong', description: 'Office 365 + Azure + Teams bundle creates deep enterprise dependency. 95% Fortune 500 customers.' },
+            { name: 'Cloud Infrastructure', strength: 'strong', description: 'Azure is #2 cloud (25% share). $13B OpenAI investment gives AI distribution moat.' },
+            { name: 'Developer Ecosystem', strength: 'strong', description: 'GitHub (100M+ devs) + VS Code + Copilot creates developer platform lock-in.' },
+            { name: 'Switching Costs', strength: 'strong', description: 'Enterprise migration costs are prohibitive. Active Directory, Exchange, SharePoint deeply embedded.' },
+        ],
+        risks: [
+            { category: 'company-specific', description: 'Massive AI infrastructure capex ($80B+ committed) with uncertain ROI timeline. Azure AI margins may compress near-term.', severity: 'high' },
+            { category: 'regulatory', description: 'EU and FTC scrutiny on Activision integration and cloud bundling practices. Potential forced unbundling of Teams from Office.', severity: 'medium' },
+            { category: 'competitive', description: 'AWS maintains cloud lead. Google Cloud gaining enterprise share. OpenAI could build competing distribution.', severity: 'medium' as const },
+            { category: 'macro', description: 'Enterprise IT budget cuts could slow Azure growth. PC market remains soft, affecting Windows/Surface revenue.', severity: 'medium' },
+        ],
+        catalysts: [
+            { description: 'Copilot monetization acceleration — $30/user/month across 400M+ Office users represents massive upsell opportunity.', timeline: 'H1 2026', impact: 'positive' },
+            { description: 'Azure AI revenue growing 150%+ YoY. Becoming primary cloud growth engine as traditional compute matures.', timeline: 'FY2026', impact: 'positive' },
+            { description: 'Windows 12 launch with native AI features driving enterprise PC refresh cycle.', timeline: 'Late 2026', impact: 'positive' },
+        ],
+        themes: ['Azure cloud growth', 'Copilot AI monetization', 'OpenAI partnership', 'Enterprise dominance', 'Gaming (Activision)', 'Antitrust risk'],
+        nipunGrade: 'A', nipunNumeric: 85, nipunConfidence: 82,
+        investmentSignal: 'Buy', investmentOverall: 78,
+        strengths: [
+            'Industry-best gross margins (69.35%) across diversified revenue streams',
+            'Azure growing 29%+ YoY — fastest-growing major cloud platform',
+            'Copilot AI creating new $30/user/month revenue layer across 400M+ users',
+            '$13B OpenAI partnership provides exclusive AI distribution advantage',
+            'Consistent dividend growth with ultra-low 28% payout ratio',
+        ],
+        weaknesses: [
+            'Massive AI capex ($80B+) with uncertain ROI timeline',
+            'Gaming segment declining (-2.3%) despite $69B Activision acquisition',
+            'Antitrust pressure on Teams/Office bundling in EU',
+            'PC market softness impacting Windows licensing revenue',
+        ],
+        bullPrice: 500, basePrice: 440, bearPrice: 350,
+        moatRating: 'Wide' as const, moatScore: 92, moatDurability: 'high',
+        classification: 'Blend', valueScore: 55, growthScore: 78,
+        pegRatio: 1.6, priceToBook: 11.2, priceToSales: 11.9, epsGrowth5Y: 18.5, revenueGrowth5Y: 14.2,
+        dividendYieldVal: 0.76, annualDividend: 3.00, payoutRatio: 28.1, divGrowth5Y: 10.2, divYears: 20, divSafety: 'very-safe' as const,
+    },
+    GOOGL: {
+        name: 'Alphabet Inc.', price: 172.50, change: -0.72, changePercent: -0.42,
+        open: 173.80, high: 174.20, low: 171.90, previousClose: 173.22,
+        volume: 21543800, marketCap: 2130000000000, pe: 24.8, eps: 6.96, beta: 1.06,
+        weekHigh52: 191.75, weekLow52: 130.67, revenue: 339860000000, grossMargin: 57.47,
+        debtToEquity: 0.05, dividendYield: 0.46, sector: 'Technology',
+        executives: [
+            { name: 'Sundar Pichai', role: 'CEO', type: 'sell', shares: 22000, price: 175.00, value: 3850000 },
+            { name: 'Ruth Porat', role: 'CFO', type: 'sell', shares: 15000, price: 170.00, value: 2550000 },
+            { name: 'Prabhakar Raghavan', role: 'SVP', type: 'exercise', shares: 40000, price: 140.00, value: 5600000 },
+        ],
+        peers: [
+            { ticker: 'META', price: 585.40, marketCap: 1480000000000, pe: 26.3, eps: 22.26, change: 0.67 },
+            { ticker: 'AMZN', price: 198.30, marketCap: 2050000000000, pe: 42.1, eps: 4.71, change: 1.20 },
+            { ticker: 'SNAP', price: 11.50, marketCap: 18700000000, pe: -1, eps: -0.22, change: -1.80 },
+            { ticker: 'TTD', price: 88.50, marketCap: 43200000000, pe: 78.3, eps: 1.13, change: -0.95 },
+        ],
+        revenueSegments: [
+            { name: 'Google Search & Ads', revenue: 191000000000, percent: 56.2, growth: 11.4 },
+            { name: 'YouTube Ads', revenue: 36800000000, percent: 10.8, growth: 15.7 },
+            { name: 'Google Cloud', revenue: 41200000000, percent: 12.1, growth: 28.5 },
+            { name: 'Network/Other', revenue: 34100000000, percent: 10.0, growth: -1.2 },
+            { name: 'Other Bets', revenue: 1580000000, percent: 0.5, growth: 42.0 },
+        ],
+        moatSources: [
+            { name: 'Search Monopoly', strength: 'strong', description: '92% global search share. AI Overviews reinforcing dominance despite competition.' },
+            { name: 'Data Advantage', strength: 'strong', description: 'Billions of daily queries create unmatched training data flywheel for AI models.' },
+            { name: 'YouTube Dominance', strength: 'strong', description: '2.7B monthly users. No viable competitor for long-form video monetization.' },
+            { name: 'Cloud + AI', strength: 'moderate', description: 'GCP growing 28%+. Gemini models competitive with GPT. Vertex AI gaining enterprise traction.' },
+        ],
+        risks: [
+            { category: 'regulatory', description: 'DOJ monopoly ruling could force search distribution changes. Potential Chrome divestiture being discussed.', severity: 'high' },
+            { category: 'competitive', description: 'ChatGPT and Perplexity threaten search ad revenue model. AI answer boxes reduce click-through rates.', severity: 'high' },
+            { category: 'regulatory', description: 'EU Digital Services Act and potential ad targeting restrictions could impact ad revenue growth.', severity: 'medium' },
+            { category: 'competitive', description: 'TikTok captures younger demographics. Amazon growing share in product search advertising.', severity: 'medium' },
+        ],
+        catalysts: [
+            { description: 'Gemini 2.0 launch across Search, Workspace, and Cloud — driving AI revenue monetization.', timeline: 'H1 2026', impact: 'positive' },
+            { description: 'Google Cloud turning profitable with 28%+ growth. AI workloads accelerating enterprise adoption.', timeline: 'FY2026', impact: 'positive' },
+            { description: 'Waymo autonomous ride-hailing expanding to 10+ US cities with licensing model.', timeline: '2026-2027', impact: 'positive' },
+        ],
+        themes: ['Search AI evolution', 'Cloud profitability', 'YouTube growth', 'Antitrust risk', 'Gemini AI', 'Waymo autonomy'],
+        nipunGrade: 'A-', nipunNumeric: 80, nipunConfidence: 75,
+        investmentSignal: 'Buy', investmentOverall: 74,
+        strengths: [
+            'Dominant 92% search market share with AI Overviews reinforcing moat',
+            'Google Cloud profitable and growing 28%+ — fastest margin expansion',
+            'YouTube generates $36.8B in ads — irreplaceable content platform',
+            'Near-zero debt (0.05 D/E) with $110B+ cash reserves',
+            'Trading at 24.8x P/E — discount to peer average for this growth profile',
+        ],
+        weaknesses: [
+            'DOJ monopoly ruling creates existential regulatory uncertainty',
+            'AI-generated answers reduce search ad click-through rates',
+            'Other Bets segment still unprofitable despite years of investment',
+            'Advertising business cyclically exposed to macro downturns',
+        ],
+        bullPrice: 220, basePrice: 195, bearPrice: 145,
+        moatRating: 'Wide' as const, moatScore: 85, moatDurability: 'high',
+        classification: 'Blend', valueScore: 58, growthScore: 68,
+        pegRatio: 1.4, priceToBook: 6.8, priceToSales: 6.3, epsGrowth5Y: 20.5, revenueGrowth5Y: 12.8,
+        dividendYieldVal: 0.46, annualDividend: 0.80, payoutRatio: 11.5, divGrowth5Y: 0, divYears: 1, divSafety: 'very-safe' as const,
+    },
+};
+
+function getProfile(ticker: string): CompanyProfile {
+    const t = ticker.toUpperCase();
+    if (PROFILES[t]) return PROFILES[t];
+    // Generate sensible defaults for unknown tickers
+    const seed = t.charCodeAt(0) * 7 + (t.charCodeAt(1) || 0) * 3;
+    const price = 50 + (seed % 400);
+    const pe = 15 + (seed % 35);
+    const eps = +(price / pe).toFixed(2);
+    return {
+        name: `${t} Corp`, price, change: +(price * 0.008 * (seed % 2 === 0 ? 1 : -1)).toFixed(2),
+        changePercent: +(0.8 * (seed % 2 === 0 ? 1 : -1)).toFixed(2),
+        open: +(price * 0.995).toFixed(2), high: +(price * 1.01).toFixed(2),
+        low: +(price * 0.99).toFixed(2), previousClose: +(price * 0.992).toFixed(2),
+        volume: 5000000 + seed * 100000, marketCap: price * 1000000000 * (1 + seed % 5),
+        pe, eps, beta: +(0.8 + (seed % 10) * 0.1).toFixed(2),
+        weekHigh52: +(price * 1.25).toFixed(2), weekLow52: +(price * 0.75).toFixed(2),
+        revenue: price * 500000000, grossMargin: 30 + seed % 30,
+        debtToEquity: +(0.3 + (seed % 20) * 0.1).toFixed(2), dividendYield: +((seed % 5) * 0.3).toFixed(2),
+        sector: 'Technology',
+        executives: [
+            { name: 'CEO', role: 'CEO', type: 'sell', shares: 10000, price, value: price * 10000 },
+            { name: 'CFO', role: 'CFO', type: 'buy', shares: 5000, price, value: price * 5000 },
+        ],
+        peers: [
+            { ticker: 'AAPL', price: 178.72, marketCap: 2780000000000, pe: 28.5, eps: 6.27, change: 1.33 },
+            { ticker: 'MSFT', price: 392.74, marketCap: 2920000000000, pe: 24.5, eps: 15.98, change: -2.24 },
+            { ticker: 'GOOGL', price: 172.50, marketCap: 2130000000000, pe: 24.8, eps: 6.96, change: -0.42 },
+        ],
+        revenueSegments: [
+            { name: 'Core Business', revenue: price * 300000000, percent: 60, growth: 8.5 },
+            { name: 'Services', revenue: price * 100000000, percent: 20, growth: 15.2 },
+            { name: 'New Initiatives', revenue: price * 50000000, percent: 10, growth: 22.1 },
+            { name: 'Other', revenue: price * 50000000, percent: 10, growth: 3.4 },
+        ],
+        moatSources: [
+            { name: 'Market Position', strength: 'moderate', description: 'Established market presence with brand recognition in core segments.' },
+            { name: 'Switching Costs', strength: 'moderate', description: 'Customer integration creates meaningful switching costs for enterprise clients.' },
+        ],
+        risks: [
+            { category: 'competitive', description: 'Intensifying competition from both established players and emerging disruptors in core markets.', severity: 'medium' as const },
+            { category: 'macro', description: 'Economic slowdown could impact demand and compress margins across business segments.', severity: 'medium' as const },
+            { category: 'company-specific', description: 'Strategic investments in growth areas require successful execution to deliver shareholder value.', severity: 'low' as const },
+        ],
+        catalysts: [
+            { description: 'New product launches and market expansion initiatives expected to drive revenue growth.', timeline: 'H2 2026', impact: 'positive' as const },
+            { description: 'Cost optimization programs targeting improved operating margins.', timeline: 'FY2026', impact: 'positive' },
+        ],
+        themes: ['Industry trends', 'Market expansion', 'Innovation pipeline', 'Margin improvement'],
+        nipunGrade: 'B+' as const, nipunNumeric: 72, nipunConfidence: 65,
+        investmentSignal: 'Hold', investmentOverall: 62,
+        strengths: [
+            `Solid market position in core ${t} business segments`,
+            'Consistent revenue growth trajectory over trailing twelve months',
+            'Management executing on operational efficiency improvements',
+        ],
+        weaknesses: [
+            'Limited competitive moat relative to industry leaders',
+            'Execution risk on growth investments with uncertain returns',
+        ],
+        bullPrice: +(price * 1.30).toFixed(0), basePrice: +(price * 1.12).toFixed(0), bearPrice: +(price * 0.82).toFixed(0),
+        moatRating: 'Narrow' as const, moatScore: 55, moatDurability: 'medium' as const,
+        classification: 'Blend' as const, valueScore: 50, growthScore: 50,
+        pegRatio: +(pe / 12).toFixed(1), priceToBook: +(pe * 0.8).toFixed(1), priceToSales: +(pe * 0.3).toFixed(1),
+        epsGrowth5Y: 8 + seed % 10, revenueGrowth5Y: 5 + seed % 8,
+        dividendYieldVal: +((seed % 5) * 0.3).toFixed(2), annualDividend: +(price * 0.01).toFixed(2),
+        payoutRatio: 25 + seed % 30, divGrowth5Y: 3 + seed % 5, divYears: 3 + seed % 10, divSafety: 'safe' as const,
+    };
+}
+
+// ─── Mock Financial Data ───────────────────────────────────────────
+export function getMockFinancials(ticker: string): FinancialData {
+    const p = getProfile(ticker);
+    return {
+        ticker: ticker.toUpperCase(), companyName: p.name,
+        price: p.price, change: p.change, changePercent: p.changePercent,
+        open: p.open, high: p.high, low: p.low, previousClose: p.previousClose,
+        volume: p.volume, marketCap: p.marketCap, pe: p.pe, eps: p.eps, beta: p.beta,
+        weekHigh52: p.weekHigh52, weekLow52: p.weekLow52, revenue: p.revenue,
+        grossMargin: p.grossMargin, debtToEquity: p.debtToEquity, dividendYield: p.dividendYield,
+        sector: p.sector,
+    };
+}
+
+// ─── Mock Technical Analysis ───────────────────────────────────────
+export function getMockTechnicals(ticker: string): TechnicalAnalysis {
+    const p = getProfile(ticker);
+    return {
+        rsi: { name: 'RSI (14)', value: 55 + (p.pe % 15), signal: p.changePercent > 0 ? 'bullish' : 'neutral', interpretation: `RSI at ${55 + (p.pe % 15)} — ${p.changePercent > 0 ? 'approaching overbought' : 'neutral territory'}` },
+        macd: { name: 'MACD', value: +(p.change * 0.5).toFixed(2), signal: p.change > 0 ? 'bullish' : 'bearish', interpretation: `MACD ${p.change > 0 ? 'positive — bullish momentum' : 'negative — bearish pressure'}` },
+        sma50: { name: 'SMA 50', value: +(p.price * 0.97).toFixed(2), signal: 'bullish', interpretation: `Price ($${p.price}) above 50-day SMA ($${(p.price * 0.97).toFixed(2)}) — short-term uptrend` },
+        sma200: { name: 'SMA 200', value: +(p.price * 0.93).toFixed(2), signal: 'bullish', interpretation: `Price above 200-day SMA ($${(p.price * 0.93).toFixed(2)}) — long-term uptrend` },
+        overallSignal: p.change > 0 ? 'bullish' : 'neutral',
+        goldenDeathCross: p.change > 0 ? '🟢 Golden Cross — 50-day SMA above 200-day SMA (bullish long-term signal)' : null,
+    };
+}
+
+// ─── Mock Insider Activity ─────────────────────────────────────────
+export function getMockInsiderActivity(ticker: string): InsiderActivity {
+    const p = getProfile(ticker);
+    const trades = p.executives.map(e => ({ name: e.name, role: e.role, transactionType: e.type, shares: e.shares, price: e.price, value: e.value, date: '2026-02-15' }));
+    const buyVal = p.executives.filter(e => e.type === 'buy').reduce((s, e) => s + e.value, 0);
+    const sellVal = p.executives.filter(e => e.type === 'sell').reduce((s, e) => s + e.value, 0);
+    return { trades, netSentiment: buyVal > sellVal ? 'bullish' : 'bearish', totalBuyValue: buyVal, totalSellValue: sellVal, summary: `${p.executives.filter(e => e.type === 'buy').length} buys, ${p.executives.filter(e => e.type === 'sell').length} sells in recent filings` };
+}
+
+// ─── Mock Earnings Data ────────────────────────────────────────────
+export function getMockEarnings(ticker: string): EarningsData {
+    const p = getProfile(ticker);
+    const base = p.eps / 4;
+    return {
+        surprises: [
+            { quarter: '2025-Q4', estimateEps: +(base * 1.15).toFixed(2), actualEps: +(base * 1.20).toFixed(2), surprise: +(base * 0.05).toFixed(2), surprisePercent: 4.3, beat: true },
+            { quarter: '2025-Q3', estimateEps: +(base * 0.95).toFixed(2), actualEps: +(base * 1.00).toFixed(2), surprise: +(base * 0.05).toFixed(2), surprisePercent: 5.3, beat: true },
+            { quarter: '2025-Q2', estimateEps: +(base * 0.90).toFixed(2), actualEps: +(base * 0.93).toFixed(2), surprise: +(base * 0.03).toFixed(2), surprisePercent: 3.3, beat: true },
+            { quarter: '2025-Q1', estimateEps: +(base * 0.85).toFixed(2), actualEps: +(base * 0.92).toFixed(2), surprise: +(base * 0.07).toFixed(2), surprisePercent: 8.2, beat: true },
+        ],
+        streak: '4-quarter beat streak 🔥',
+        nextEarningsDate: '2026-04-30',
+    };
+}
+
+// ─── Mock Peer Comparison ──────────────────────────────────────────
+export function getMockPeers(ticker: string): PeerComparison {
+    const p = getProfile(ticker);
+    const avgPe = p.peers.filter(x => x.pe > 0).reduce((s, x) => s + x.pe, 0) / p.peers.filter(x => x.pe > 0).length;
+    return {
+        peers: p.peers,
+        relativeValuation: `Avg peer P/E: ${avgPe.toFixed(1)} — check if this ticker trades at a premium or discount to peers`,
+    };
+}
+
+// ─── Mock SEC Filings ──────────────────────────────────────────────
+export function getMockSECFilings(ticker: string): SECFiling[] {
+    const t = ticker.toUpperCase();
+    return [
+        { type: '10-Q', dateFiled: '2026-02-01', description: `Quarterly Report - Q1 FY2026`, url: `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${t}&type=10-Q` },
+        { type: '8-K', dateFiled: '2026-01-30', description: `Current Report - Earnings`, url: `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${t}&type=8-K` },
+        { type: '10-K', dateFiled: '2025-11-01', description: `Annual Report - FY2025`, url: `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${t}&type=10-K` },
+        { type: 'DEF 14A', dateFiled: '2025-12-15', description: `Proxy Statement - Annual Meeting`, url: `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${t}&type=DEF+14A` },
+    ];
+}
+
+// ─── Mock AI Consensus ─────────────────────────────────────────────
+export function getMockAIConsensus(ticker: string): AIConsensus {
+    const p = getProfile(ticker);
+    const sig = p.investmentOverall >= 70 ? 'bullish' : p.investmentOverall >= 55 ? 'neutral' : 'bearish';
+    return {
+        geminiVerdict: sig,
+        secondaryVerdict: sig === 'bullish' ? 'neutral' : sig,
+        secondaryModel: 'Cerebras Llama 3.3 70B',
+        agreementScore: sig === 'bullish' ? 68 : 78,
+        divergences: [
+            `Models ${sig === 'bullish' ? 'partially' : 'largely'} agree on ${p.name}'s outlook`,
+            `Key debate: valuation justification given current growth trajectory`,
+            `Risk assessment differs on macro impact severity`,
+        ],
+        consensusSummary: `AI models ${sig === 'bullish' ? 'lean bullish' : 'are cautious'} on ${p.name}. ${p.strengths[0]} is a key positive. ${p.weaknesses[0]} remains a concern.`,
+    };
+}
+
+// ─── Mock Sentiment Data ───────────────────────────────────────────
+export function getMockSentiment(ticker: string): SentimentResult {
+    const p = getProfile(ticker);
+    const bull = p.investmentOverall >= 70 ? 65 : p.investmentOverall >= 55 ? 50 : 35;
+    const bear = p.investmentOverall >= 70 ? 22 : p.investmentOverall >= 55 ? 30 : 40;
+    return {
+        bullishPercent: bull, bearishPercent: bear, neutralPercent: 100 - bull - bear,
+        totalPosts: 50,
+        posts: [
+            { title: `${ticker} is looking strong here 🚀`, sentiment: 'Bullish', theme: 'Price momentum' },
+            { title: `Loaded up on ${ticker} calls`, sentiment: 'Bullish', theme: 'Options activity' },
+            { title: `${ticker} AI strategy is impressive`, sentiment: 'Bullish', theme: 'AI integration' },
+            { title: `${ticker} valuation getting stretched`, sentiment: 'Bearish', theme: 'Valuation concern' },
+            { title: `Waiting for ${ticker} earnings`, sentiment: 'Neutral', theme: 'Earnings anticipation' },
+        ],
+        themes: p.themes,
+    };
+}
+
+// ─── Mock Risk Factors ─────────────────────────────────────────────
+export function getMockRisks(ticker: string): RiskFactor[] { return getProfile(ticker).risks; }
+
+// ─── Mock Catalysts ────────────────────────────────────────────────
+export function getMockCatalysts(ticker: string): Catalyst[] { return getProfile(ticker).catalysts; }
+
+// ─── Mock Audit Result ─────────────────────────────────────────────
+export function getMockAudit(ticker: string): AuditResult {
+    const p = getProfile(ticker);
+    return {
+        claims: [
+            { claim: `Current P/E ratio stands at ${p.pe.toFixed(2)}`, status: 'grounded', source: 'Finnhub API' },
+            { claim: `Revenue reached $${(p.revenue / 1e9).toFixed(1)}B`, status: 'grounded', source: 'Finnhub API' },
+            { claim: `Gross margin of ${p.grossMargin.toFixed(2)}% demonstrates operational efficiency`, status: 'grounded', source: 'Finnhub API' },
+            { claim: `${p.revenueSegments[0].name} segment is the largest revenue contributor at ${p.revenueSegments[0].percent}%`, status: 'grounded', source: 'Company filings' },
+            { claim: `Social sentiment is predominantly ${p.investmentOverall >= 65 ? 'bullish' : 'mixed'}`, status: 'grounded', source: 'Reddit RSS Analysis' },
+            { claim: `Growth catalysts could drive significant upside in 12-month horizon`, status: 'speculative', source: 'Analyst consensus' },
+        ],
+        groundedCount: 5, speculativeCount: 1, unverifiableCount: 0,
+    };
+}
+
+// ─── Mock Report ───────────────────────────────────────────────────
+export function getMockReport(ticker: string): string {
+    const p = getProfile(ticker);
+    const t = ticker.toUpperCase();
+    return `# ${t} — Institutional-Grade Analysis Report
+
+## Executive Summary
+
+${p.name} (${t}) demonstrates ${p.investmentOverall >= 70 ? 'strong' : 'solid'} financial performance. Trading at $${p.price.toFixed(2)} with a market cap of $${(p.marketCap / 1e12).toFixed(2)}T, the company ${p.investmentOverall >= 70 ? 'is well-positioned for growth' : 'faces a balanced risk-reward profile'}.
+
+## Financial Health
+
+Revenue of $${(p.revenue / 1e9).toFixed(1)}B with gross margin of ${p.grossMargin.toFixed(1)}%. P/E of ${p.pe.toFixed(1)} with EPS of $${p.eps.toFixed(2)}. D/E ratio of ${p.debtToEquity}. Beta of ${p.beta.toFixed(2)}.
+
+## Key Strengths
+
+${p.strengths.map(s => `- ${s}`).join('\n')}
+
+## Key Risks
+
+${p.weaknesses.map(w => `- ${w}`).join('\n')}
+
+## Conclusion
+
+${p.investmentSignal} rating with ${p.nipunGrade} Nipun Score. ${p.strengths[0]}. Monitor ${p.weaknesses[0]}.
+
+---
+
+**⚠️ DISCLAIMER: This is not financial advice. This report is for educational and informational purposes only.**`;
+}
+
+// ─── Mock Investment Score ─────────────────────────────────────────
+export function getMockInvestmentScore(ticker: string): InvestmentScore {
+    const p = getProfile(ticker);
+    return {
+        overall: p.investmentOverall, signal: p.investmentSignal,
+        breakdown: { technicalScore: p.investmentOverall + 3, fundamentalScore: p.investmentOverall + 8, sentimentScore: p.investmentOverall - 7, riskScore: p.investmentOverall - 14, insiderScore: p.investmentOverall - 32 },
+        summary: `${p.strengths[0]}. ${p.weaknesses[0]}.`,
+    };
+}
+
+// ─── Mock Financial Health ─────────────────────────────────────────
+export function getMockFinancialHealth(ticker: string): FinancialHealth {
+    const p = getProfile(ticker);
+    const z = p.debtToEquity < 1 ? 6.5 : p.debtToEquity < 2 ? 5.8 : 3.2;
+    const f = p.grossMargin > 50 ? 8 : p.grossMargin > 30 ? 7 : 5;
+    return {
+        altmanZScore: z, altmanZone: z > 2.99 ? 'safe' : z > 1.81 ? 'grey' : 'distress',
+        piotroskiFScore: f, piotroskiRating: f >= 7 ? 'strong' : f >= 4 ? 'moderate' : 'weak',
+        currentRatio: +(1.0 + p.debtToEquity * 0.1).toFixed(2),
+        quickRatio: +(0.9 + p.debtToEquity * 0.05).toFixed(2),
+        interestCoverage: +(30 / (p.debtToEquity + 0.1)).toFixed(1),
+        pricePositionPercent: +((p.price - p.weekLow52) / (p.weekHigh52 - p.weekLow52) * 100).toFixed(1),
+        volatilityCategory: p.beta > 1.3 ? 'high' : p.beta > 0.9 ? 'moderate' : 'low',
+        healthSummary: `${z > 3 ? 'Excellent' : 'Adequate'} financial health — Altman Z ${z.toFixed(2)} (${z > 2.99 ? 'safe' : 'grey'} zone), Piotroski ${f}/9 (${f >= 7 ? 'strong' : 'moderate'}).`,
+    };
+}
+
+// ─── Mock Nipun Score™ ─────────────────────────────────────────────
+export function getMockNipunScore(ticker: string): NipunScore {
+    const p = getProfile(ticker);
+    return {
+        grade: p.nipunGrade as NipunScore['grade'], numericScore: p.nipunNumeric, confidence: p.nipunConfidence,
+        verdict: `${p.investmentSignal} conviction — ${p.strengths[0].toLowerCase()}, offset by ${p.weaknesses[0].toLowerCase()}.`,
+        strengths: p.strengths, weaknesses: p.weaknesses,
+        recommendation: `${p.investmentSignal === 'Buy' || p.investmentSignal === 'Strong Buy' ? 'Accumulate on pullbacks' : 'Hold position'}. Target $${p.bullPrice} (bull case) within 12 months.`,
     };
 }
 
 // ─── Mock Scenario Analysis ────────────────────────────────────────
-export function getMockScenarioAnalysis(_ticker: string): ScenarioAnalysis {
+export function getMockScenarioAnalysis(ticker: string): ScenarioAnalysis {
+    const p = getProfile(ticker);
     return {
-        bull: {
-            label: 'Bull Case',
-            price: 225.00,
-            upside: 25.9,
-            probability: 30,
-            rationale: 'iPhone 17 super-cycle drives 15% revenue growth, Services hits $100B run rate, AI monetization begins with premium Siri+ subscription ($4.99/mo).',
-        },
-        base: {
-            label: 'Base Case',
-            price: 195.00,
-            upside: 9.1,
-            probability: 50,
-            rationale: 'Steady iPhone replacement demand, Services grows 15% YoY, Apple Intelligence drives modest ASP uplift. P/E expands slightly to 30x.',
-        },
-        bear: {
-            label: 'Bear Case',
-            price: 150.00,
-            upside: -16.1,
-            probability: 20,
-            rationale: 'China revenue drops 25% from Huawei competition, EU forces App Store fee reduction, global recession reduces consumer electronics spend.',
-        },
+        bull: { label: 'Bull Case', price: p.bullPrice, upside: +((p.bullPrice / p.price - 1) * 100).toFixed(1), probability: 30, rationale: p.catalysts[0]?.description || 'Strong execution on growth initiatives drives upside.' },
+        base: { label: 'Base Case', price: p.basePrice, upside: +((p.basePrice / p.price - 1) * 100).toFixed(1), probability: 50, rationale: 'Steady execution with moderate growth. P/E maintains current levels.' },
+        bear: { label: 'Bear Case', price: p.bearPrice, upside: +((p.bearPrice / p.price - 1) * 100).toFixed(1), probability: 20, rationale: p.risks[0]?.description || 'Macro headwinds and competitive pressure compress multiples.' },
         timeHorizon: '12 months',
-        methodology: 'Weighted DCF + comparable company analysis + scenario probability weighting. Uses forward EPS estimates with sector-adjusted multiples.',
+        methodology: 'Weighted DCF + comparable company analysis + scenario probability weighting.',
     };
 }
 
 // ─── Mock Revenue Breakdown ────────────────────────────────────────
-export function getMockRevenueBreakdown(_ticker: string): RevenueBreakdown {
+export function getMockRevenueBreakdown(ticker: string): RevenueBreakdown {
+    const p = getProfile(ticker);
+    const totalGrowth = p.revenueSegments.reduce((s, seg) => s + seg.growth * seg.percent, 0) / 100;
     return {
-        segments: [
-            { name: 'iPhone', revenue: 200770000000, percent: 52.4, growth: 3.8 },
-            { name: 'Services', revenue: 85200000000, percent: 22.2, growth: 16.3 },
-            { name: 'Mac', revenue: 29360000000, percent: 7.7, growth: 8.1 },
-            { name: 'iPad', revenue: 28300000000, percent: 7.4, growth: -3.2 },
-            { name: 'Wearables & Home', revenue: 39660000000, percent: 10.3, growth: 2.5 },
-        ],
-        totalRevenue: 383290000000,
-        revenueGrowth: 6.1,
-        summary: 'Services is the growth engine (+16.3% YoY) and highest-margin segment, now 22% of revenue. iPhone remains dominant at 52% but growing modestly. iPad is the only declining segment.',
+        segments: p.revenueSegments,
+        totalRevenue: p.revenue,
+        revenueGrowth: +totalGrowth.toFixed(1),
+        summary: `${p.revenueSegments[0].name} is the largest segment at ${p.revenueSegments[0].percent}%. ${p.revenueSegments.find(s => s.growth > 15)?.name || p.revenueSegments[1].name} is the fastest-growing segment.`,
     };
 }
 
 // ─── Mock Momentum Score ───────────────────────────────────────────
-export function getMockMomentum(_ticker: string): MomentumData {
+export function getMockMomentum(ticker: string): MomentumData {
+    const p = getProfile(ticker);
+    const score = p.changePercent > 0 ? 68 : 45;
     return {
-        score: 68,
-        trend: 'up',
-        shortTerm: { period: '1 Month', performance: 3.2 },
-        mediumTerm: { period: '3 Months', performance: 7.8 },
-        longTerm: { period: '12 Months', performance: 12.5 },
-        relativeStrength: 1.15,
-        interpretation: 'Positive momentum across all timeframes. Stock outperforming S&P 500 by 15% on a relative basis. Short-term acceleration suggests sustained buying pressure.',
+        score, trend: (p.changePercent > 0 ? 'up' : 'flat') as MomentumData['trend'],
+        shortTerm: { period: '1 Month', performance: +(p.changePercent * 2.5).toFixed(1) },
+        mediumTerm: { period: '3 Months', performance: +(p.changePercent * 6).toFixed(1) },
+        longTerm: { period: '12 Months', performance: +(p.changePercent * 10).toFixed(1) },
+        relativeStrength: +(p.changePercent > 0 ? 1.15 : 0.92).toFixed(2),
+        interpretation: `${score >= 60 ? 'Positive' : 'Mixed'} momentum. ${p.changePercent > 0 ? 'Stock outperforming broader market' : 'Stock underperforming — watch for reversal signals'}.`,
     };
 }
 
 // ─── Mock Value vs Growth ──────────────────────────────────────────
-export function getMockValueGrowth(_ticker: string): ValueGrowthProfile {
+export function getMockValueGrowth(ticker: string): ValueGrowthProfile {
+    const p = getProfile(ticker);
     return {
-        classification: 'Growth',
-        valueScore: 42,
-        growthScore: 71,
-        metrics: {
-            pegRatio: 2.1,
-            priceToBook: 48.5,
-            priceToSales: 7.3,
-            epsGrowth5Y: 13.8,
-            revenueGrowth5Y: 8.2,
-        },
-        interpretation: 'Classified as Growth — premium valuation (48.5x P/B, 7.3x P/S) justified by consistent EPS growth (13.8% 5Y CAGR). PEG ratio of 2.1 suggests slight overvaluation relative to growth rate, but ecosystem lock-in provides margin of safety.',
+        classification: p.classification as ValueGrowthProfile['classification'], valueScore: p.valueScore, growthScore: p.growthScore,
+        metrics: { pegRatio: p.pegRatio, priceToBook: p.priceToBook, priceToSales: p.priceToSales, epsGrowth5Y: p.epsGrowth5Y, revenueGrowth5Y: p.revenueGrowth5Y },
+        interpretation: `Classified as ${p.classification} — ${p.classification === 'Growth' ? 'premium valuation justified by consistent growth' : p.classification === 'Blend' ? 'growth at a reasonable price with balanced metrics' : 'balanced value and growth characteristics'}.`,
     };
 }
 
 // ─── Mock Competitive Moat ─────────────────────────────────────────
-export function getMockCompetitiveMoat(_ticker: string): CompetitiveMoat {
+export function getMockCompetitiveMoat(ticker: string): CompetitiveMoat {
+    const p = getProfile(ticker);
     return {
-        rating: 'Wide',
-        score: 88,
-        sources: [
-            { name: 'Ecosystem Lock-in', strength: 'strong', description: '2B+ active devices create massive switching costs. iMessage, AirDrop, and Handoff chain users to Apple ecosystem.' },
-            { name: 'Brand Premium', strength: 'strong', description: 'Commands 30-40% price premium over Android competitors. Brand value estimated at $880B — world\'s most valuable brand.' },
-            { name: 'Services Network Effect', strength: 'moderate', description: 'App Store, Apple Music, iCloud create recurring revenue streams with 1B+ paid subscriptions.' },
-            { name: 'Supply Chain Mastery', strength: 'strong', description: 'Custom silicon (M-series, A-series chips) provide 2-3 year performance lead over competitors. Vertical integration reduces costs.' },
-        ],
-        durability: 'high',
-        interpretation: 'Wide moat with high durability — Apple\'s competitive advantages are structural and self-reinforcing. The ecosystem flywheel strengthens as each new product category (Vision Pro, Apple Car) adds switching cost layers.',
+        rating: p.moatRating as CompetitiveMoat['rating'], score: p.moatScore, sources: p.moatSources as CompetitiveMoat['sources'],
+        durability: p.moatDurability as CompetitiveMoat['durability'],
+        interpretation: `${p.moatRating} moat with ${p.moatDurability.toLowerCase()} durability. ${p.moatSources[0].name} is the primary competitive advantage.`,
     };
 }
 
 // ─── Mock Risk-Reward ──────────────────────────────────────────────
-export function getMockRiskReward(_ticker: string): RiskRewardProfile {
+export function getMockRiskReward(ticker: string): RiskRewardProfile {
+    const p = getProfile(ticker);
+    const downside = +((1 - p.bearPrice / p.price) * 100).toFixed(1);
+    const upside = +((p.bullPrice / p.price - 1) * 100).toFixed(1);
+    const ratio = +(upside / Math.max(downside, 1)).toFixed(1);
     return {
-        riskLevel: 4,
-        rewardPotential: 7,
-        ratio: 2.9,
-        rating: 'Good',
-        maxDrawdownEstimate: 16.1,
-        upsidePotential: 25.9,
-        interpretation: 'Favorable risk-reward with 2.9:1 ratio. Maximum estimated downside of 16.1% (bear case $150) vs 25.9% upside (bull case $225). Suitable for moderate-risk portfolios seeking large-cap tech exposure.',
+        riskLevel: downside > 25 ? 6 : downside > 15 ? 4 : 3,
+        rewardPotential: upside > 30 ? 8 : upside > 20 ? 7 : 5,
+        ratio, rating: ratio >= 3 ? 'Excellent' : ratio >= 2 ? 'Good' : ratio >= 1 ? 'Fair' : 'Poor',
+        maxDrawdownEstimate: downside, upsidePotential: upside,
+        interpretation: `${ratio >= 2 ? 'Favorable' : 'Balanced'} risk-reward with ${ratio}:1 ratio. Max downside ~${downside}% vs ~${upside}% upside.`,
     };
 }
 
 // ─── Mock Dividend Analysis ────────────────────────────────────────
-export function getMockDividendAnalysis(_ticker: string): DividendAnalysis {
+export function getMockDividendAnalysis(ticker: string): DividendAnalysis {
+    const p = getProfile(ticker);
     return {
-        yield: 0.55,
-        annualDividend: 0.96,
-        payoutRatio: 15.3,
-        growthRate5Y: 5.8,
-        yearsOfGrowth: 12,
-        exDividendDate: '2026-05-09',
-        frequency: 'quarterly',
-        safety: 'very-safe',
-        interpretation: 'Ultra-safe dividend with only 15.3% payout ratio — Apple retains 85% of earnings for buybacks and R&D. 12 consecutive years of dividend growth at 5.8% CAGR. The $0.96/share annual dividend is well-covered with significant room for increases.',
+        yield: p.dividendYieldVal, annualDividend: p.annualDividend,
+        payoutRatio: p.payoutRatio, growthRate5Y: p.divGrowth5Y, yearsOfGrowth: p.divYears,
+        exDividendDate: '2026-05-09', frequency: 'quarterly', safety: p.divSafety as DividendAnalysis['safety'],
+        interpretation: `${p.divSafety === 'very-safe' ? 'Ultra-safe' : 'Solid'} dividend with ${p.payoutRatio.toFixed(1)}% payout ratio. ${p.divYears} consecutive years of growth at ${p.divGrowth5Y}% CAGR.`,
     };
 }

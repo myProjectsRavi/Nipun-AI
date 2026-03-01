@@ -172,7 +172,7 @@
 
   /* Stat label */
   .stat-label {
-    @apply text-xs font-body font-semibold uppercase tracking-[0.1em] text-white/60 mb-1 block;
+    @apply text-xs font-body font-semibold uppercase tracking-[0.1em] text-white/60;
   }
 
   .stat-value {

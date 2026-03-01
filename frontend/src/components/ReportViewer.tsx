@@ -33,7 +33,7 @@ function ScoreBar({ label, value, color }: { label: string; value: number; color
         <div className="space-y-1">
             <div className="flex items-center justify-between">
                 <span className="stat-label">{label}</span>
-                <span className="font-mono text-base font-bold text-white/90">{value}</span>
+                <span className="font-mono text-sm font-bold text-white">{value}</span>
             </div>
             <div className="score-bar">
                 <div className={`score-bar-fill ${color}`} style={{ width: `${value}%` }} />
@@ -44,7 +44,7 @@ function ScoreBar({ label, value, color }: { label: string; value: number; color
 
 function SectionCard({ title, icon, delay, children, premium }: { title: string; icon: string; delay?: string; children: React.ReactNode; premium?: boolean }) {
     return (
-        <div className={`${premium ? 'card-premium shadow- glow-gold' : 'card'} p-5 animate-slide-up`} style={delay ? { animationDelay: delay } : undefined}>
+        <div className={`${premium ? 'card-premium' : 'card'} p-5 animate-slide-up`} style={delay ? { animationDelay: delay } : undefined}>
             <h3 className="section-heading mb-4 flex items-center gap-2">
                 <span className="text-base">{icon}</span> {title}
             </h3>
@@ -126,7 +126,7 @@ export default function ReportViewer() {
                         </div>
                         <div className="rounded-xl bg-gold/5 border border-gold/10 p-3">
                             <div className="stat-label text-gold mb-1">💡 Recommendation</div>
-                            <p className="text-base text-white/80 leading-relaxed">{result.nipunScore.recommendation}</p>
+                            <p className="text-sm text-white/80 leading-relaxed">{result.nipunScore.recommendation}</p>
                         </div>
                     </SectionCard>
                 )}
@@ -359,11 +359,11 @@ export default function ReportViewer() {
                                 <div className="grid grid-cols-2 gap-2">
                                     <div className="rounded-lg bg-white/[0.02] border border-white/[0.04] p-2 text-center">
                                         <div className="stat-label">Risk Level</div>
-                                        <div className="font-mono text-base font-bold text-white/70">{result.riskReward.riskLevel}/10</div>
+                                        <div className="font-mono text-sm font-bold text-white/80">{result.riskReward.riskLevel}/10</div>
                                     </div>
                                     <div className="rounded-lg bg-white/[0.02] border border-white/[0.04] p-2 text-center">
                                         <div className="stat-label">Reward</div>
-                                        <div className="font-mono text-base font-bold text-white/70">{result.riskReward.rewardPotential}/10</div>
+                                        <div className="font-mono text-sm font-bold text-white/80">{result.riskReward.rewardPotential}/10</div>
                                     </div>
                                 </div>
                             </div>
@@ -397,7 +397,7 @@ export default function ReportViewer() {
                             ].map(m => (
                                 <div key={m.l} className="rounded-lg bg-white/[0.02] border border-white/[0.04] p-1.5 text-center">
                                     <div className="text-base text-white/80 uppercase">{m.l}</div>
-                                    <div className="font-mono text-base font-bold text-white/90">{m.v}</div>
+                                    <div className="font-mono text-sm font-bold text-white">{m.v}</div>
                                 </div>
                             ))}
                         </div>
@@ -426,7 +426,7 @@ export default function ReportViewer() {
                             </div>
                             <div className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-2 text-center">
                                 <div className="stat-label">Consecutive Growth</div>
-                                <div className="font-mono text-base font-bold text-white/70">{result.dividendAnalysis.yearsOfGrowth} years</div>
+                                <div className="font-mono text-sm font-bold text-white/80">{result.dividendAnalysis.yearsOfGrowth} years</div>
                             </div>
                         </div>
                         <div className="flex items-center justify-between rounded-lg bg-white/[0.02] border border-white/[0.04] px-3 py-2 mb-2">
@@ -478,7 +478,7 @@ export default function ReportViewer() {
                                             <span className="text-base font-display font-semibold text-white/90">{sig.name}</span>
                                             <span className={`font-mono text-base font-bold ${s.color}`}>{sig.value}</span>
                                         </div>
-                                        <p className="text-base text-white/70 leading-relaxed">{sig.interpretation}</p>
+                                        <p className="text-sm text-white/70 leading-relaxed">{sig.interpretation}</p>
                                     </div>
                                 );
                             })}
@@ -530,7 +530,7 @@ export default function ReportViewer() {
                             return (
                                 <div key={i} className={`rounded-xl border ${c.border} ${c.bg} p-3`}>
                                     <div className="flex items-center gap-2 mb-1"><div className={`h-1.5 w-1.5 rounded-full ${c.dot}`} /><span className={`text-base font-semibold uppercase ${c.text}`}>{risk.severity} — {risk.category}</span></div>
-                                    <p className="text-base text-white/70 leading-relaxed">{risk.description}</p>
+                                    <p className="text-sm text-white/70 leading-relaxed">{risk.description}</p>
                                 </div>
                             );
                         })}
@@ -593,26 +593,26 @@ export default function ReportViewer() {
                 <div className="mb-5">
                     <SectionCard title="Peer Comparison" icon="🏭" delay="0.75s">
                         <div className="overflow-x-auto">
-                            <table className="w-full text-base">
+                            <table className="w-full text-sm">
                                 <thead><tr className="border-b border-white/[0.06]">
                                     {['Ticker', 'Price', 'Mkt Cap', 'P/E', 'EPS', 'Change'].map(h => <th key={h} className={`py-2 stat-label ${h === 'Ticker' ? 'text-left' : 'text-right'}`}>{h}</th>)}
                                 </tr></thead>
                                 <tbody>
                                     <tr className="border-b border-accent/10 bg-accent/5">
-                                        <td className="py-2 font-mono font-bold text-accent">{result.ticker}</td>
-                                        <td className="py-2 text-right font-mono text-white/70">${result.financials.price.toFixed(2)}</td>
-                                        <td className="py-2 text-right font-mono text-white/70">{formatN(result.financials.marketCap)}</td>
-                                        <td className="py-2 text-right font-mono text-white/70">{result.financials.pe.toFixed(1)}</td>
-                                        <td className="py-2 text-right font-mono text-white/70">${result.financials.eps.toFixed(2)}</td>
+                                        <td className="py-2 text-sm font-mono font-bold text-accent">{result.ticker}</td>
+                                        <td className="py-2 text-right text-sm font-mono text-white/70">${result.financials.price.toFixed(2)}</td>
+                                        <td className="py-2 text-right text-sm font-mono text-white/70">{formatN(result.financials.marketCap)}</td>
+                                        <td className="py-2 text-right text-sm font-mono text-white/70">{result.financials.pe.toFixed(1)}</td>
+                                        <td className="py-2 text-right text-sm font-mono text-white/70">${result.financials.eps.toFixed(2)}</td>
                                         <td className={`py-2 text-right font-mono font-semibold ${result.financials.changePercent >= 0 ? 'text-emerald' : 'text-rose'}`}>{result.financials.changePercent > 0 ? '+' : ''}{result.financials.changePercent.toFixed(2)}%</td>
                                     </tr>
                                     {result.peerComparison.peers.map(p => (
                                         <tr key={p.ticker} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
-                                            <td className="py-2 font-mono text-white/80">{p.ticker}</td>
-                                            <td className="py-2 text-right font-mono text-white/70">${p.price.toFixed(2)}</td>
-                                            <td className="py-2 text-right font-mono text-white/70">{formatN(p.marketCap)}</td>
-                                            <td className="py-2 text-right font-mono text-white/70">{p.pe > 0 ? p.pe.toFixed(1) : 'N/A'}</td>
-                                            <td className="py-2 text-right font-mono text-white/70">${p.eps.toFixed(2)}</td>
+                                            <td className="py-2 text-sm font-mono text-white/80">{p.ticker}</td>
+                                            <td className="py-2 text-right text-sm font-mono text-white/70">${p.price.toFixed(2)}</td>
+                                            <td className="py-2 text-right text-sm font-mono text-white/70">{formatN(p.marketCap)}</td>
+                                            <td className="py-2 text-right text-sm font-mono text-white/70">{p.pe > 0 ? p.pe.toFixed(1) : 'N/A'}</td>
+                                            <td className="py-2 text-right text-sm font-mono text-white/70">${p.eps.toFixed(2)}</td>
                                             <td className={`py-2 text-right font-mono ${p.change >= 0 ? 'text-emerald/50' : 'text-rose/50'}`}>{p.change > 0 ? '+' : ''}{p.change.toFixed(2)}%</td>
                                         </tr>
                                     ))}
@@ -632,10 +632,10 @@ export default function ReportViewer() {
                             {result.secFilings.map((f, i) => (
                                 <a key={i} href={f.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between rounded-lg bg-white/[0.02] border border-white/[0.04] px-3 py-2 hover:bg-white/[0.04] transition-colors group">
                                     <div className="flex items-center gap-2">
-                                        <span className="rounded bg-accent/10 px-1.5 py-0.5 font-mono text-base font-bold text-accent">{f.type}</span>
-                                        <span className="text-base text-white/70 truncate">{f.description}</span>
+                                        <span className="rounded bg-accent/10 px-1.5 py-0.5 font-mono text-xs font-bold text-accent">{f.type}</span>
+                                        <span className="text-xs text-white/70 truncate max-w-[200px]">{f.description}</span>
                                     </div>
-                                    <span className="text-base text-white/80 group-hover:text-accent transition-colors">{f.dateFiled} →</span>
+                                    <span className="text-xs text-white/50 group-hover:text-accent transition-colors whitespace-nowrap">{f.dateFiled} →</span>
                                 </a>
                             ))}
                         </div>
@@ -648,9 +648,9 @@ export default function ReportViewer() {
                             <div key={i} className="rounded-xl border border-emerald/10 bg-emerald/[0.03] p-3">
                                 <div className="flex items-center justify-between mb-1">
                                     <span className="badge-success">{cat.timeline}</span>
-                                    <span className="text-base text-emerald/50 capitalize">{cat.impact}</span>
+                                    <span className="text-xs text-emerald/50 capitalize">{cat.impact}</span>
                                 </div>
-                                <p className="text-base text-white/70 leading-relaxed">{cat.description}</p>
+                                <p className="text-sm text-white/70 leading-relaxed">{cat.description}</p>
                             </div>
                         ))}
                     </div>
@@ -737,7 +737,7 @@ export default function ReportViewer() {
 
             {/* Disclaimer */}
             <div className="mb-8 rounded-2xl border border-gold/10 bg-gold/[0.02] p-4 text-center">
-                <p className="text-base text-gold/40">{result.disclaimer}</p>
+                <p className="text-xs text-gold/50">{result.disclaimer}</p>
             </div>
         </div>
     );
