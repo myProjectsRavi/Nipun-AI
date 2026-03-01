@@ -10,6 +10,8 @@ import type {
     PeerComparison,
     SECFiling,
     AIConsensus,
+    InvestmentScore,
+    FinancialHealth,
 } from './types';
 
 // ─── Mock Financial Data (AAPL) ────────────────────────────────────
@@ -258,4 +260,36 @@ Balanced risk-reward profile. Strong fundamentals, supportive sentiment, multipl
 ---
 
 **⚠️ DISCLAIMER: This is not financial advice. This report is for educational and informational purposes only. Always conduct your own research and consult with a qualified financial advisor before making investment decisions.**`;
+}
+
+// ─── Mock Investment Score ─────────────────────────────────────────
+export function getMockInvestmentScore(_ticker: string): InvestmentScore {
+    return {
+        overall: 72,
+        signal: 'Buy',
+        breakdown: {
+            technicalScore: 75,
+            fundamentalScore: 80,
+            sentimentScore: 65,
+            riskScore: 58,
+            insiderScore: 40,
+        },
+        summary: 'Strong fundamentals (P/E discount vs peers, 45.96% margin) and bullish technicals offset by net insider selling and macro risk headwinds.',
+    };
+}
+
+// ─── Mock Financial Health ─────────────────────────────────────────
+export function getMockFinancialHealth(_ticker: string): FinancialHealth {
+    return {
+        altmanZScore: 5.82,
+        altmanZone: 'safe',
+        piotroskiFScore: 7,
+        piotroskiRating: 'strong',
+        currentRatio: 1.07,
+        quickRatio: 1.01,
+        interestCoverage: 29.3,
+        pricePositionPercent: 41.2,
+        volatilityCategory: 'moderate',
+        healthSummary: 'Excellent financial health — strong Altman Z (5.82, safe zone) and Piotroski F-Score (7/9, strong). High interest coverage (29.3x) indicates minimal debt risk. Stock trades at 41% of its 52-week range.',
+    };
 }

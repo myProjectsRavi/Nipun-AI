@@ -108,6 +108,34 @@ export interface AIConsensus {
     consensusSummary: string;
 }
 
+// ─── Investment Score ──────────────────────────────────────────────
+export interface InvestmentScore {
+    overall: number;              // 0-100
+    signal: 'Strong Buy' | 'Buy' | 'Hold' | 'Sell' | 'Strong Sell';
+    breakdown: {
+        technicalScore: number;   // 0-100
+        fundamentalScore: number; // 0-100
+        sentimentScore: number;   // 0-100
+        riskScore: number;        // 0-100 (higher=less risky)
+        insiderScore: number;     // 0-100
+    };
+    summary: string;
+}
+
+// ─── Financial Health ──────────────────────────────────────────────
+export interface FinancialHealth {
+    altmanZScore: number;
+    altmanZone: 'safe' | 'grey' | 'distress';
+    piotroskiFScore: number;      // 0-9
+    piotroskiRating: 'strong' | 'moderate' | 'weak';
+    currentRatio: number;
+    quickRatio: number;
+    interestCoverage: number;
+    pricePositionPercent: number;  // % from 52W range
+    volatilityCategory: 'low' | 'moderate' | 'high';
+    healthSummary: string;
+}
+
 // ─── Sentiment (Groq) ─────────────────────────────────────────────
 export interface SentimentPost {
     title: string;
@@ -178,6 +206,8 @@ export interface AnalysisResponse {
     peerComparison: PeerComparison | null;
     secFilings: SECFiling[] | null;
     aiConsensus: AIConsensus | null;
+    investmentScore: InvestmentScore | null;
+    financialHealth: FinancialHealth | null;
     report: string;
     audit: AuditResult | null;
     disclaimer: string;

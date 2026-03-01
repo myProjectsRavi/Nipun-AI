@@ -105,6 +105,32 @@ export interface AIConsensus {
     consensusSummary: string;
 }
 
+export interface InvestmentScore {
+    overall: number;
+    signal: 'Strong Buy' | 'Buy' | 'Hold' | 'Sell' | 'Strong Sell';
+    breakdown: {
+        technicalScore: number;
+        fundamentalScore: number;
+        sentimentScore: number;
+        riskScore: number;
+        insiderScore: number;
+    };
+    summary: string;
+}
+
+export interface FinancialHealth {
+    altmanZScore: number;
+    altmanZone: 'safe' | 'grey' | 'distress';
+    piotroskiFScore: number;
+    piotroskiRating: 'strong' | 'moderate' | 'weak';
+    currentRatio: number;
+    quickRatio: number;
+    interestCoverage: number;
+    pricePositionPercent: number;
+    volatilityCategory: 'low' | 'moderate' | 'high';
+    healthSummary: string;
+}
+
 export interface SentimentPost {
     title: string;
     sentiment: 'Bullish' | 'Bearish' | 'Neutral';
@@ -158,6 +184,8 @@ export interface AnalysisResponse {
     peerComparison: PeerComparison | null;
     secFilings: SECFiling[] | null;
     aiConsensus: AIConsensus | null;
+    investmentScore: InvestmentScore | null;
+    financialHealth: FinancialHealth | null;
     report: string;
     audit: AuditResult | null;
     disclaimer: string;

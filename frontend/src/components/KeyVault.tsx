@@ -12,48 +12,53 @@ const KEY_PROVIDERS = [
     {
         id: 'finnhub' as const,
         name: 'Finnhub',
-        description: 'Real-time stock quotes & financial metrics',
+        description: 'Stock data & technicals',
         url: 'https://finnhub.io/register',
         placeholder: 'Your Finnhub API key',
         icon: '📈',
+        required: true,
     },
     {
         id: 'groq' as const,
         name: 'Groq',
-        description: 'Lightning-fast sentiment analysis via LPU',
+        description: 'Sentiment analysis',
         url: 'https://console.groq.com',
         placeholder: 'Your Groq API key',
         icon: '⚡',
+        required: true,
     },
     {
         id: 'gemini' as const,
         name: 'Google Gemini',
-        description: 'Risk extraction & report synthesis',
+        description: 'Risk extraction & synthesis',
         url: 'https://aistudio.google.com',
         placeholder: 'Your Gemini API key',
         icon: '🧠',
+        required: true,
     },
     {
         id: 'cohere' as const,
         name: 'Cohere',
-        description: 'RAG-powered fact auditing',
+        description: 'Fact auditing',
         url: 'https://dashboard.cohere.com',
         placeholder: 'Your Cohere API key',
         icon: '🔍',
+        required: true,
     },
     {
         id: 'cerebras' as const,
         name: 'Cerebras',
-        description: 'AI consensus (optional, free, no CC)',
+        description: 'AI consensus (optional)',
         url: 'https://cloud.cerebras.ai',
         placeholder: 'Your Cerebras API key (optional)',
         icon: '🤖',
+        required: false,
     },
 ];
 
 export default function KeyVault() {
     const { setKeys, setDemoMode, setView, demoMode } = useStore();
-    const [step, setStep] = useState<'choose' | 'enter-keys' | 'passphrase' | 'unlock'>('choose');
+    const [step, setStep] = useState<'choose' | 'enter-keys' | 'passphrase' | 'unlock' | 'view-keys'>('choose');
     const [keys, setLocalKeys] = useState<APIKeys>({
         finnhub: '',
         groq: '',
@@ -65,6 +70,8 @@ export default function KeyVault() {
     const [confirmPassphrase, setConfirmPassphrase] = useState('');
     const [error, setError] = useState('');
     const [isUnlocking, setIsUnlocking] = useState(false);
+    const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
+    const [copySuccess, setCopySuccess] = useState<string | null>(null);
 
     useEffect(() => {
         if (hasStoredKeys()) {
@@ -104,9 +111,11 @@ export default function KeyVault() {
         try {
             const decrypted = await decryptKeys(passphrase);
             if (decrypted) {
+                setLocalKeys(decrypted);
                 setKeys(decrypted);
                 setDemoMode(false);
-                setView('analysis');
+                // Go to view-keys so user can see, copy, edit
+                setStep('view-keys');
             } else {
                 setError('Incorrect passphrase');
             }
@@ -117,10 +126,43 @@ export default function KeyVault() {
         }
     };
 
+    const handleUpdateKeys = async () => {
+        if (!passphrase || passphrase.length < 6) {
+            setError('Enter your passphrase to save changes');
+            return;
+        }
+        try {
+            await encryptKeys(keys, passphrase);
+            setKeys(keys);
+            setError('');
+            setCopySuccess('keys-saved');
+            setTimeout(() => setCopySuccess(null), 2000);
+        } catch {
+            setError('Failed to save updated keys');
+        }
+    };
+
     const handleClearKeys = () => {
         clearStoredKeys();
         setStep('choose');
         setError('');
+        setPassphrase('');
+    };
+
+    const handleCopyKey = (id: string, value: string) => {
+        navigator.clipboard.writeText(value);
+        setCopySuccess(id);
+        setTimeout(() => setCopySuccess(null), 2000);
+    };
+
+    const toggleShowKey = (id: string) => {
+        setShowKeys(prev => ({ ...prev, [id]: !prev[id] }));
+    };
+
+    const maskKey = (key: string) => {
+        if (!key) return '(not set)';
+        if (key.length <= 8) return '••••••••';
+        return key.slice(0, 4) + '••••••••' + key.slice(-4);
     };
 
     return (
@@ -130,8 +172,8 @@ export default function KeyVault() {
                 <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-accent/10 text-3xl">
                     🔐
                 </div>
-                <h2 className="mb-2 text-2xl font-bold text-white">Key Vault</h2>
-                <p className="text-sm text-white/50">
+                <h2 className="mb-2 font-display text-2xl font-bold text-white">Key Vault</h2>
+                <p className="text-sm text-muted">
                     Your API keys are encrypted with AES-256-GCM and never leave your browser.
                 </p>
             </div>
@@ -149,9 +191,9 @@ export default function KeyVault() {
                                 🎮
                             </div>
                             <div className="flex-1">
-                                <h3 className="mb-1 font-semibold text-white">Use Demo Mode (Mock Data)</h3>
-                                <p className="text-sm text-white/40">
-                                    Explore Nipun AI with realistic mock data — no API keys needed
+                                <h3 className="mb-1 font-semibold text-white">Try Demo Mode</h3>
+                                <p className="text-sm text-muted">
+                                    Explore with realistic mock data — no API keys needed
                                 </p>
                             </div>
                             <svg className="h-5 w-5 text-white/30 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -171,7 +213,7 @@ export default function KeyVault() {
                             </div>
                             <div className="flex-1">
                                 <h3 className="mb-1 font-semibold text-white">Enter API Keys</h3>
-                                <p className="text-sm text-white/40">
+                                <p className="text-sm text-muted">
                                     Connect your own free-tier API keys for live analysis
                                 </p>
                             </div>
@@ -191,14 +233,15 @@ export default function KeyVault() {
 
             {/* Step: Enter Keys */}
             {step === 'enter-keys' && (
-                <div className="space-y-4 animate-slide-up">
+                <div className="space-y-3 animate-slide-up">
                     {KEY_PROVIDERS.map((provider) => (
                         <div key={provider.id} className="glass-card p-4">
                             <div className="mb-3 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <span className="text-lg">{provider.icon}</span>
-                                    <span className="font-medium text-white">{provider.name}</span>
-                                    <span className="text-xs text-white/30">— {provider.description}</span>
+                                    <span className="font-semibold text-white">{provider.name}</span>
+                                    <span className="text-[11px] text-muted">— {provider.description}</span>
+                                    {!provider.required && <span className="text-[9px] text-accent/60 bg-accent/10 px-1.5 py-0.5 rounded">optional</span>}
                                 </div>
                                 <a
                                     href={provider.url}
@@ -213,7 +256,7 @@ export default function KeyVault() {
                                 type="password"
                                 className="input-field font-mono text-sm"
                                 placeholder={provider.placeholder}
-                                value={keys[provider.id]}
+                                value={keys[provider.id] || ''}
                                 onChange={(e) =>
                                     setLocalKeys((prev) => ({ ...prev, [provider.id]: e.target.value }))
                                 }
@@ -242,9 +285,9 @@ export default function KeyVault() {
                     <div className="glass-card p-6">
                         <div className="mb-4 flex items-center gap-2">
                             <span className="text-lg">🔒</span>
-                            <h3 className="font-semibold text-white">Set Encryption Passphrase</h3>
+                            <h3 className="font-display font-semibold text-white">Set Encryption Passphrase</h3>
                         </div>
-                        <p className="mb-4 text-sm text-white/40">
+                        <p className="mb-4 text-sm text-muted">
                             This passphrase encrypts your keys with AES-256-GCM. We never store it — if you forget it, you'll need to re-enter your keys.
                         </p>
                         <div className="space-y-3">
@@ -285,10 +328,10 @@ export default function KeyVault() {
                     <div className="glass-card p-6">
                         <div className="mb-4 flex items-center gap-2">
                             <span className="text-lg">🔓</span>
-                            <h3 className="font-semibold text-white">Unlock Key Vault</h3>
+                            <h3 className="font-display font-semibold text-white">Unlock Key Vault</h3>
                         </div>
-                        <p className="mb-4 text-sm text-white/40">
-                            Your encrypted API keys were found. Enter your passphrase to decrypt them.
+                        <p className="mb-4 text-sm text-muted">
+                            Your encrypted API keys were found. Enter your passphrase to decrypt, view, and edit them.
                         </p>
                         <input
                             type="password"
@@ -321,7 +364,7 @@ export default function KeyVault() {
                                     Decrypting...
                                 </span>
                             ) : (
-                                '🔓 Unlock'
+                                '🔓 Unlock & View'
                             )}
                         </button>
                     </div>
@@ -331,6 +374,102 @@ export default function KeyVault() {
                         className="w-full text-center text-xs text-white/20 hover:text-danger transition-colors"
                     >
                         Clear stored keys and start over
+                    </button>
+                </div>
+            )}
+
+            {/* Step: View / Edit Keys (NEW) */}
+            {step === 'view-keys' && (
+                <div className="space-y-3 animate-slide-up">
+                    <div className="mb-4 flex items-center justify-between">
+                        <h3 className="font-display font-semibold text-white text-lg">Your API Keys</h3>
+                        <div className="flex items-center gap-2">
+                            {copySuccess === 'keys-saved' && (
+                                <span className="badge-success text-[10px] animate-fade-in">✓ Saved</span>
+                            )}
+                        </div>
+                    </div>
+
+                    {KEY_PROVIDERS.map((provider) => {
+                        const keyValue = keys[provider.id] || '';
+                        const isShown = showKeys[provider.id];
+                        return (
+                            <div key={provider.id} className="glass-card p-4">
+                                <div className="mb-2 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-lg">{provider.icon}</span>
+                                        <span className="font-semibold text-white text-sm">{provider.name}</span>
+                                        {keyValue ? (
+                                            <span className="badge-success text-[9px]">Set</span>
+                                        ) : (
+                                            <span className="text-[9px] text-muted bg-white/5 px-1.5 py-0.5 rounded">Not set</span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        {/* Toggle visibility */}
+                                        <button
+                                            onClick={() => toggleShowKey(provider.id)}
+                                            className="rounded-lg px-2 py-1 text-[10px] text-muted hover:text-white hover:bg-white/5 transition-all"
+                                            title={isShown ? 'Hide' : 'Show'}
+                                        >
+                                            {isShown ? '🙈 Hide' : '👁️ Show'}
+                                        </button>
+                                        {/* Copy */}
+                                        {keyValue && (
+                                            <button
+                                                onClick={() => handleCopyKey(provider.id, keyValue)}
+                                                className="rounded-lg px-2 py-1 text-[10px] text-muted hover:text-accent hover:bg-accent/5 transition-all"
+                                            >
+                                                {copySuccess === provider.id ? '✓ Copied' : '📋 Copy'}
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {isShown ? (
+                                    <input
+                                        type="text"
+                                        className="input-field font-mono text-sm"
+                                        value={keyValue}
+                                        onChange={(e) =>
+                                            setLocalKeys((prev) => ({ ...prev, [provider.id]: e.target.value }))
+                                        }
+                                        placeholder={provider.placeholder}
+                                    />
+                                ) : (
+                                    <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] px-4 py-3 font-mono text-sm text-muted">
+                                        {maskKey(keyValue)}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+
+                    {error && (
+                        <p className="text-sm text-danger text-center">{error}</p>
+                    )}
+
+                    <div className="flex gap-3 pt-2">
+                        <button onClick={handleUpdateKeys} className="btn-secondary flex-1">
+                            💾 Save Changes
+                        </button>
+                        <button
+                            onClick={() => {
+                                setKeys(keys);
+                                setDemoMode(false);
+                                setView('analysis');
+                            }}
+                            className="btn-primary flex-1"
+                        >
+                            ⚡ Start Analyzing
+                        </button>
+                    </div>
+
+                    <button
+                        onClick={handleClearKeys}
+                        className="w-full text-center text-xs text-white/20 hover:text-danger transition-colors mt-2"
+                    >
+                        Clear all keys and start over
                     </button>
                 </div>
             )}

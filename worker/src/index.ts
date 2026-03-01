@@ -19,6 +19,8 @@ import {
     getMockPeers,
     getMockSECFilings,
     getMockAIConsensus,
+    getMockInvestmentScore,
+    getMockFinancialHealth,
 } from './mock';
 
 const DISCLAIMER =
@@ -81,6 +83,8 @@ export default {
                         peerComparison: getMockPeers(upperTicker),
                         secFilings: getMockSECFilings(upperTicker),
                         aiConsensus: getMockAIConsensus(upperTicker),
+                        investmentScore: getMockInvestmentScore(upperTicker),
+                        financialHealth: getMockFinancialHealth(upperTicker),
                         report: getMockReport(upperTicker),
                         audit: getMockAudit(upperTicker),
                         disclaimer: DISCLAIMER,
@@ -211,6 +215,8 @@ export default {
                         peerComparison: peers,
                         secFilings,
                         aiConsensus,
+                        investmentScore: getMockInvestmentScore(upperTicker),
+                        financialHealth: getMockFinancialHealth(upperTicker),
                         report,
                         audit,
                         disclaimer: DISCLAIMER,
