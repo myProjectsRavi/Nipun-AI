@@ -173,7 +173,7 @@ export default function KeyVault() {
                     🔐
                 </div>
                 <h2 className="mb-2 font-display text-2xl font-bold text-white">Key Vault</h2>
-                <p className="text-sm text-muted">
+                <p className="text-sm text-white/40">
                     Your API keys are encrypted with AES-256-GCM and never leave your browser.
                 </p>
             </div>
@@ -183,7 +183,7 @@ export default function KeyVault() {
                 <div className="space-y-4 animate-slide-up">
                     <button
                         onClick={handleDemoMode}
-                        className="glass-card-hover group w-full cursor-pointer p-6 text-left"
+                        className="card group w-full cursor-pointer p-6 text-left"
                         id="demo-mode-btn"
                     >
                         <div className="flex items-center gap-4">
@@ -192,7 +192,7 @@ export default function KeyVault() {
                             </div>
                             <div className="flex-1">
                                 <h3 className="mb-1 font-semibold text-white">Try Demo Mode</h3>
-                                <p className="text-sm text-muted">
+                                <p className="text-sm text-white/40">
                                     Explore with realistic mock data — no API keys needed
                                 </p>
                             </div>
@@ -204,16 +204,16 @@ export default function KeyVault() {
 
                     <button
                         onClick={() => setStep('enter-keys')}
-                        className="glass-card-hover group w-full cursor-pointer p-6 text-left"
+                        className="card group w-full cursor-pointer p-6 text-left"
                         id="enter-keys-btn"
                     >
                         <div className="flex items-center gap-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-success/10 text-xl transition-transform group-hover:scale-110">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald/10 text-xl transition-transform group-hover:scale-110">
                                 🔑
                             </div>
                             <div className="flex-1">
                                 <h3 className="mb-1 font-semibold text-white">Enter API Keys</h3>
-                                <p className="text-sm text-muted">
+                                <p className="text-sm text-white/40">
                                     Connect your own free-tier API keys for live analysis
                                 </p>
                             </div>
@@ -235,12 +235,12 @@ export default function KeyVault() {
             {step === 'enter-keys' && (
                 <div className="space-y-3 animate-slide-up">
                     {KEY_PROVIDERS.map((provider) => (
-                        <div key={provider.id} className="glass-card p-4">
+                        <div key={provider.id} className="card p-4">
                             <div className="mb-3 flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <span className="text-lg">{provider.icon}</span>
                                     <span className="font-semibold text-white">{provider.name}</span>
-                                    <span className="text-[11px] text-muted">— {provider.description}</span>
+                                    <span className="text-[11px] text-white/40">— {provider.description}</span>
                                     {!provider.required && <span className="text-[9px] text-accent/60 bg-accent/10 px-1.5 py-0.5 rounded">optional</span>}
                                 </div>
                                 <a
@@ -282,12 +282,12 @@ export default function KeyVault() {
             {/* Step: Passphrase */}
             {step === 'passphrase' && (
                 <div className="space-y-4 animate-slide-up">
-                    <div className="glass-card p-6">
+                    <div className="card p-6">
                         <div className="mb-4 flex items-center gap-2">
                             <span className="text-lg">🔒</span>
                             <h3 className="font-display font-semibold text-white">Set Encryption Passphrase</h3>
                         </div>
-                        <p className="mb-4 text-sm text-muted">
+                        <p className="mb-4 text-sm text-white/40">
                             This passphrase encrypts your keys with AES-256-GCM. We never store it — if you forget it, you'll need to re-enter your keys.
                         </p>
                         <div className="space-y-3">
@@ -307,7 +307,7 @@ export default function KeyVault() {
                             />
                         </div>
                         {error && (
-                            <p className="mt-3 text-sm text-danger">{error}</p>
+                            <p className="mt-3 text-sm text-rose">{error}</p>
                         )}
                     </div>
 
@@ -325,12 +325,12 @@ export default function KeyVault() {
             {/* Step: Unlock */}
             {step === 'unlock' && (
                 <div className="space-y-4 animate-slide-up">
-                    <div className="glass-card p-6">
+                    <div className="card p-6">
                         <div className="mb-4 flex items-center gap-2">
                             <span className="text-lg">🔓</span>
                             <h3 className="font-display font-semibold text-white">Unlock Key Vault</h3>
                         </div>
-                        <p className="mb-4 text-sm text-muted">
+                        <p className="mb-4 text-sm text-white/40">
                             Your encrypted API keys were found. Enter your passphrase to decrypt, view, and edit them.
                         </p>
                         <input
@@ -342,7 +342,7 @@ export default function KeyVault() {
                             onKeyDown={(e) => e.key === 'Enter' && handleUnlock()}
                         />
                         {error && (
-                            <p className="mt-3 text-sm text-danger">{error}</p>
+                            <p className="mt-3 text-sm text-rose">{error}</p>
                         )}
                     </div>
 
@@ -371,7 +371,7 @@ export default function KeyVault() {
 
                     <button
                         onClick={handleClearKeys}
-                        className="w-full text-center text-xs text-white/20 hover:text-danger transition-colors"
+                        className="w-full text-center text-xs text-white/20 hover:text-rose transition-colors"
                     >
                         Clear stored keys and start over
                     </button>
@@ -394,7 +394,7 @@ export default function KeyVault() {
                         const keyValue = keys[provider.id] || '';
                         const isShown = showKeys[provider.id];
                         return (
-                            <div key={provider.id} className="glass-card p-4">
+                            <div key={provider.id} className="card p-4">
                                 <div className="mb-2 flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <span className="text-lg">{provider.icon}</span>
@@ -402,14 +402,14 @@ export default function KeyVault() {
                                         {keyValue ? (
                                             <span className="badge-success text-[9px]">Set</span>
                                         ) : (
-                                            <span className="text-[9px] text-muted bg-white/5 px-1.5 py-0.5 rounded">Not set</span>
+                                            <span className="text-[9px] text-white/40 bg-white/5 px-1.5 py-0.5 rounded">Not set</span>
                                         )}
                                     </div>
                                     <div className="flex items-center gap-1.5">
                                         {/* Toggle visibility */}
                                         <button
                                             onClick={() => toggleShowKey(provider.id)}
-                                            className="rounded-lg px-2 py-1 text-[10px] text-muted hover:text-white hover:bg-white/5 transition-all"
+                                            className="rounded-lg px-2 py-1 text-[10px] text-white/40 hover:text-white hover:bg-white/5 transition-all"
                                             title={isShown ? 'Hide' : 'Show'}
                                         >
                                             {isShown ? '🙈 Hide' : '👁️ Show'}
@@ -418,7 +418,7 @@ export default function KeyVault() {
                                         {keyValue && (
                                             <button
                                                 onClick={() => handleCopyKey(provider.id, keyValue)}
-                                                className="rounded-lg px-2 py-1 text-[10px] text-muted hover:text-accent hover:bg-accent/5 transition-all"
+                                                className="rounded-lg px-2 py-1 text-[10px] text-white/40 hover:text-accent hover:bg-accent/5 transition-all"
                                             >
                                                 {copySuccess === provider.id ? '✓ Copied' : '📋 Copy'}
                                             </button>
@@ -437,7 +437,7 @@ export default function KeyVault() {
                                         placeholder={provider.placeholder}
                                     />
                                 ) : (
-                                    <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] px-4 py-3 font-mono text-sm text-muted">
+                                    <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] px-4 py-3 font-mono text-sm text-white/40">
                                         {maskKey(keyValue)}
                                     </div>
                                 )}
@@ -446,7 +446,7 @@ export default function KeyVault() {
                     })}
 
                     {error && (
-                        <p className="text-sm text-danger text-center">{error}</p>
+                        <p className="text-sm text-rose text-center">{error}</p>
                     )}
 
                     <div className="flex gap-3 pt-2">
@@ -467,7 +467,7 @@ export default function KeyVault() {
 
                     <button
                         onClick={handleClearKeys}
-                        className="w-full text-center text-xs text-white/20 hover:text-danger transition-colors mt-2"
+                        className="w-full text-center text-xs text-white/20 hover:text-rose transition-colors mt-2"
                     >
                         Clear all keys and start over
                     </button>

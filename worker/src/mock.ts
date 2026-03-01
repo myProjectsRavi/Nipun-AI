@@ -12,6 +12,14 @@ import type {
     AIConsensus,
     InvestmentScore,
     FinancialHealth,
+    NipunScore,
+    ScenarioAnalysis,
+    RevenueBreakdown,
+    MomentumData,
+    ValueGrowthProfile,
+    CompetitiveMoat,
+    RiskRewardProfile,
+    DividendAnalysis,
 } from './types';
 
 // ─── Mock Financial Data (AAPL) ────────────────────────────────────
@@ -291,5 +299,148 @@ export function getMockFinancialHealth(_ticker: string): FinancialHealth {
         pricePositionPercent: 41.2,
         volatilityCategory: 'moderate',
         healthSummary: 'Excellent financial health — strong Altman Z (5.82, safe zone) and Piotroski F-Score (7/9, strong). High interest coverage (29.3x) indicates minimal debt risk. Stock trades at 41% of its 52-week range.',
+    };
+}
+
+// ─── Mock Nipun Score™ ─────────────────────────────────────────────
+export function getMockNipunScore(_ticker: string): NipunScore {
+    return {
+        grade: 'A-',
+        numericScore: 82,
+        confidence: 78,
+        verdict: 'Strong conviction buy with moderate risk — premium fundamentals, bullish technicals, and solid institutional sentiment offset by elevated valuation and China exposure.',
+        strengths: [
+            'Industry-leading gross margins (45.96%) demonstrating pricing power',
+            '6-quarter consecutive earnings beat streak with upside surprises',
+            'Golden Cross pattern — bullish long-term technical signal',
+            'Services revenue approaching $100B ARR provides recurring income moat',
+            'Trading at 23% P/E discount vs mega-cap tech peers',
+        ],
+        weaknesses: [
+            'Net insider selling ($15.9M sells vs $861K buys) signals caution',
+            'Greater China revenue (18%) exposed to geopolitical risk',
+            'Smartphone replacement cycles extending to 4+ years',
+            'EU regulatory headwinds could impact App Store economics',
+        ],
+        recommendation: 'Accumulate on pullbacks to $170-175 range. Set stop-loss at $160 (52W low support). Target $210-220 within 12 months based on iPhone 17 cycle catalyst.',
+    };
+}
+
+// ─── Mock Scenario Analysis ────────────────────────────────────────
+export function getMockScenarioAnalysis(_ticker: string): ScenarioAnalysis {
+    return {
+        bull: {
+            label: 'Bull Case',
+            price: 225.00,
+            upside: 25.9,
+            probability: 30,
+            rationale: 'iPhone 17 super-cycle drives 15% revenue growth, Services hits $100B run rate, AI monetization begins with premium Siri+ subscription ($4.99/mo).',
+        },
+        base: {
+            label: 'Base Case',
+            price: 195.00,
+            upside: 9.1,
+            probability: 50,
+            rationale: 'Steady iPhone replacement demand, Services grows 15% YoY, Apple Intelligence drives modest ASP uplift. P/E expands slightly to 30x.',
+        },
+        bear: {
+            label: 'Bear Case',
+            price: 150.00,
+            upside: -16.1,
+            probability: 20,
+            rationale: 'China revenue drops 25% from Huawei competition, EU forces App Store fee reduction, global recession reduces consumer electronics spend.',
+        },
+        timeHorizon: '12 months',
+        methodology: 'Weighted DCF + comparable company analysis + scenario probability weighting. Uses forward EPS estimates with sector-adjusted multiples.',
+    };
+}
+
+// ─── Mock Revenue Breakdown ────────────────────────────────────────
+export function getMockRevenueBreakdown(_ticker: string): RevenueBreakdown {
+    return {
+        segments: [
+            { name: 'iPhone', revenue: 200770000000, percent: 52.4, growth: 3.8 },
+            { name: 'Services', revenue: 85200000000, percent: 22.2, growth: 16.3 },
+            { name: 'Mac', revenue: 29360000000, percent: 7.7, growth: 8.1 },
+            { name: 'iPad', revenue: 28300000000, percent: 7.4, growth: -3.2 },
+            { name: 'Wearables & Home', revenue: 39660000000, percent: 10.3, growth: 2.5 },
+        ],
+        totalRevenue: 383290000000,
+        revenueGrowth: 6.1,
+        summary: 'Services is the growth engine (+16.3% YoY) and highest-margin segment, now 22% of revenue. iPhone remains dominant at 52% but growing modestly. iPad is the only declining segment.',
+    };
+}
+
+// ─── Mock Momentum Score ───────────────────────────────────────────
+export function getMockMomentum(_ticker: string): MomentumData {
+    return {
+        score: 68,
+        trend: 'up',
+        shortTerm: { period: '1 Month', performance: 3.2 },
+        mediumTerm: { period: '3 Months', performance: 7.8 },
+        longTerm: { period: '12 Months', performance: 12.5 },
+        relativeStrength: 1.15,
+        interpretation: 'Positive momentum across all timeframes. Stock outperforming S&P 500 by 15% on a relative basis. Short-term acceleration suggests sustained buying pressure.',
+    };
+}
+
+// ─── Mock Value vs Growth ──────────────────────────────────────────
+export function getMockValueGrowth(_ticker: string): ValueGrowthProfile {
+    return {
+        classification: 'Growth',
+        valueScore: 42,
+        growthScore: 71,
+        metrics: {
+            pegRatio: 2.1,
+            priceToBook: 48.5,
+            priceToSales: 7.3,
+            epsGrowth5Y: 13.8,
+            revenueGrowth5Y: 8.2,
+        },
+        interpretation: 'Classified as Growth — premium valuation (48.5x P/B, 7.3x P/S) justified by consistent EPS growth (13.8% 5Y CAGR). PEG ratio of 2.1 suggests slight overvaluation relative to growth rate, but ecosystem lock-in provides margin of safety.',
+    };
+}
+
+// ─── Mock Competitive Moat ─────────────────────────────────────────
+export function getMockCompetitiveMoat(_ticker: string): CompetitiveMoat {
+    return {
+        rating: 'Wide',
+        score: 88,
+        sources: [
+            { name: 'Ecosystem Lock-in', strength: 'strong', description: '2B+ active devices create massive switching costs. iMessage, AirDrop, and Handoff chain users to Apple ecosystem.' },
+            { name: 'Brand Premium', strength: 'strong', description: 'Commands 30-40% price premium over Android competitors. Brand value estimated at $880B — world\'s most valuable brand.' },
+            { name: 'Services Network Effect', strength: 'moderate', description: 'App Store, Apple Music, iCloud create recurring revenue streams with 1B+ paid subscriptions.' },
+            { name: 'Supply Chain Mastery', strength: 'strong', description: 'Custom silicon (M-series, A-series chips) provide 2-3 year performance lead over competitors. Vertical integration reduces costs.' },
+        ],
+        durability: 'high',
+        interpretation: 'Wide moat with high durability — Apple\'s competitive advantages are structural and self-reinforcing. The ecosystem flywheel strengthens as each new product category (Vision Pro, Apple Car) adds switching cost layers.',
+    };
+}
+
+// ─── Mock Risk-Reward ──────────────────────────────────────────────
+export function getMockRiskReward(_ticker: string): RiskRewardProfile {
+    return {
+        riskLevel: 4,
+        rewardPotential: 7,
+        ratio: 2.9,
+        rating: 'Good',
+        maxDrawdownEstimate: 16.1,
+        upsidePotential: 25.9,
+        interpretation: 'Favorable risk-reward with 2.9:1 ratio. Maximum estimated downside of 16.1% (bear case $150) vs 25.9% upside (bull case $225). Suitable for moderate-risk portfolios seeking large-cap tech exposure.',
+    };
+}
+
+// ─── Mock Dividend Analysis ────────────────────────────────────────
+export function getMockDividendAnalysis(_ticker: string): DividendAnalysis {
+    return {
+        yield: 0.55,
+        annualDividend: 0.96,
+        payoutRatio: 15.3,
+        growthRate5Y: 5.8,
+        yearsOfGrowth: 12,
+        exDividendDate: '2026-05-09',
+        frequency: 'quarterly',
+        safety: 'very-safe',
+        interpretation: 'Ultra-safe dividend with only 15.3% payout ratio — Apple retains 85% of earnings for buybacks and R&D. 12 consecutive years of dividend growth at 5.8% CAGR. The $0.96/share annual dividend is well-covered with significant room for increases.',
     };
 }

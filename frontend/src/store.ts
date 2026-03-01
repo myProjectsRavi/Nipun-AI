@@ -131,6 +131,100 @@ export interface FinancialHealth {
     healthSummary: string;
 }
 
+export interface NipunScore {
+    grade: string;
+    numericScore: number;
+    confidence: number;
+    verdict: string;
+    strengths: string[];
+    weaknesses: string[];
+    recommendation: string;
+}
+
+export interface ScenarioTarget {
+    label: string;
+    price: number;
+    upside: number;
+    probability: number;
+    rationale: string;
+}
+
+export interface ScenarioAnalysis {
+    bull: ScenarioTarget;
+    base: ScenarioTarget;
+    bear: ScenarioTarget;
+    timeHorizon: string;
+    methodology: string;
+}
+
+export interface RevenueSegment {
+    name: string;
+    revenue: number;
+    percent: number;
+    growth: number;
+}
+
+export interface RevenueBreakdown {
+    segments: RevenueSegment[];
+    totalRevenue: number;
+    revenueGrowth: number;
+    summary: string;
+}
+
+export interface MomentumData {
+    score: number;
+    trend: string;
+    shortTerm: { period: string; performance: number };
+    mediumTerm: { period: string; performance: number };
+    longTerm: { period: string; performance: number };
+    relativeStrength: number;
+    interpretation: string;
+}
+
+export interface ValueGrowthProfile {
+    classification: string;
+    valueScore: number;
+    growthScore: number;
+    metrics: {
+        pegRatio: number;
+        priceToBook: number;
+        priceToSales: number;
+        epsGrowth5Y: number;
+        revenueGrowth5Y: number;
+    };
+    interpretation: string;
+}
+
+export interface CompetitiveMoat {
+    rating: string;
+    score: number;
+    sources: { name: string; strength: string; description: string }[];
+    durability: string;
+    interpretation: string;
+}
+
+export interface RiskRewardProfile {
+    riskLevel: number;
+    rewardPotential: number;
+    ratio: number;
+    rating: string;
+    maxDrawdownEstimate: number;
+    upsidePotential: number;
+    interpretation: string;
+}
+
+export interface DividendAnalysis {
+    yield: number;
+    annualDividend: number;
+    payoutRatio: number;
+    growthRate5Y: number;
+    yearsOfGrowth: number;
+    exDividendDate: string | null;
+    frequency: string;
+    safety: string;
+    interpretation: string;
+}
+
 export interface SentimentPost {
     title: string;
     sentiment: 'Bullish' | 'Bearish' | 'Neutral';
@@ -186,6 +280,14 @@ export interface AnalysisResponse {
     aiConsensus: AIConsensus | null;
     investmentScore: InvestmentScore | null;
     financialHealth: FinancialHealth | null;
+    nipunScore: NipunScore | null;
+    scenarioAnalysis: ScenarioAnalysis | null;
+    revenueBreakdown: RevenueBreakdown | null;
+    momentum: MomentumData | null;
+    valueGrowth: ValueGrowthProfile | null;
+    competitiveMoat: CompetitiveMoat | null;
+    riskReward: RiskRewardProfile | null;
+    dividendAnalysis: DividendAnalysis | null;
     report: string;
     audit: AuditResult | null;
     disclaimer: string;
@@ -196,17 +298,12 @@ export interface AnalysisResponse {
 type AppView = 'setup' | 'analysis' | 'report';
 
 interface AppState {
-    // View
     view: AppView;
     setView: (v: AppView) => void;
-
-    // Keys
     keys: APIKeys | null;
     demoMode: boolean;
     setKeys: (k: APIKeys | null) => void;
     setDemoMode: (d: boolean) => void;
-
-    // Analysis
     ticker: string;
     isAnalyzing: boolean;
     analysisPhase: string;
@@ -217,21 +314,15 @@ interface AppState {
     clearResult: () => void;
 }
 
-// Worker URL — will be updated after deployment
 const DEFAULT_WORKER_URL = import.meta.env.VITE_WORKER_URL || 'http://localhost:8787';
 
 export const useStore = create<AppState>((set, get) => ({
-    // View
     view: 'setup',
     setView: (v) => set({ view: v }),
-
-    // Keys
     keys: null,
     demoMode: false,
     setKeys: (k) => set({ keys: k }),
     setDemoMode: (d) => set({ demoMode: d }),
-
-    // Analysis
     ticker: '',
     isAnalyzing: false,
     analysisPhase: '',
@@ -247,7 +338,6 @@ export const useStore = create<AppState>((set, get) => ({
         set({ isAnalyzing: true, error: null, result: null, analysisPhase: '⚡ Collecting financial data, sentiment & risks...' });
 
         try {
-
             const url = workerUrl || DEFAULT_WORKER_URL;
             const requestKeys = demoMode
                 ? { finnhub: '', groq: '', gemini: '', cohere: '', cerebras: '' }

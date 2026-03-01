@@ -110,14 +110,14 @@ export interface AIConsensus {
 
 // ─── Investment Score ──────────────────────────────────────────────
 export interface InvestmentScore {
-    overall: number;              // 0-100
+    overall: number;
     signal: 'Strong Buy' | 'Buy' | 'Hold' | 'Sell' | 'Strong Sell';
     breakdown: {
-        technicalScore: number;   // 0-100
-        fundamentalScore: number; // 0-100
-        sentimentScore: number;   // 0-100
-        riskScore: number;        // 0-100 (higher=less risky)
-        insiderScore: number;     // 0-100
+        technicalScore: number;
+        fundamentalScore: number;
+        sentimentScore: number;
+        riskScore: number;
+        insiderScore: number;
     };
     summary: string;
 }
@@ -126,14 +126,116 @@ export interface InvestmentScore {
 export interface FinancialHealth {
     altmanZScore: number;
     altmanZone: 'safe' | 'grey' | 'distress';
-    piotroskiFScore: number;      // 0-9
+    piotroskiFScore: number;
     piotroskiRating: 'strong' | 'moderate' | 'weak';
     currentRatio: number;
     quickRatio: number;
     interestCoverage: number;
-    pricePositionPercent: number;  // % from 52W range
+    pricePositionPercent: number;
     volatilityCategory: 'low' | 'moderate' | 'high';
     healthSummary: string;
+}
+
+// ─── Nipun Score™ (Letter Grade) ───────────────────────────────────
+export interface NipunScore {
+    grade: 'A+' | 'A' | 'A-' | 'B+' | 'B' | 'B-' | 'C+' | 'C' | 'C-' | 'D' | 'F';
+    numericScore: number;      // 0-100
+    confidence: number;        // 0-100
+    verdict: string;           // "Strong conviction buy with moderate risk"
+    strengths: string[];
+    weaknesses: string[];
+    recommendation: string;
+}
+
+// ─── Scenario Analysis ─────────────────────────────────────────────
+export interface ScenarioTarget {
+    label: string;
+    price: number;
+    upside: number;            // % from current
+    probability: number;       // %
+    rationale: string;
+}
+
+export interface ScenarioAnalysis {
+    bull: ScenarioTarget;
+    base: ScenarioTarget;
+    bear: ScenarioTarget;
+    timeHorizon: string;
+    methodology: string;
+}
+
+// ─── Revenue Breakdown ─────────────────────────────────────────────
+export interface RevenueSegment {
+    name: string;
+    revenue: number;
+    percent: number;
+    growth: number;            // YoY %
+}
+
+export interface RevenueBreakdown {
+    segments: RevenueSegment[];
+    totalRevenue: number;
+    revenueGrowth: number;
+    summary: string;
+}
+
+// ─── Momentum Score ────────────────────────────────────────────────
+export interface MomentumData {
+    score: number;             // 0-100
+    trend: 'strong-up' | 'up' | 'flat' | 'down' | 'strong-down';
+    shortTerm: { period: string; performance: number };
+    mediumTerm: { period: string; performance: number };
+    longTerm: { period: string; performance: number };
+    relativeStrength: number;  // vs S&P 500
+    interpretation: string;
+}
+
+// ─── Value vs Growth ───────────────────────────────────────────────
+export interface ValueGrowthProfile {
+    classification: 'Deep Value' | 'Value' | 'Blend' | 'Growth' | 'High Growth';
+    valueScore: number;        // 0-100
+    growthScore: number;       // 0-100
+    metrics: {
+        pegRatio: number;
+        priceToBook: number;
+        priceToSales: number;
+        epsGrowth5Y: number;
+        revenueGrowth5Y: number;
+    };
+    interpretation: string;
+}
+
+// ─── Competitive Moat ──────────────────────────────────────────────
+export interface CompetitiveMoat {
+    rating: 'Wide' | 'Narrow' | 'None';
+    score: number;             // 0-100
+    sources: { name: string; strength: 'strong' | 'moderate' | 'weak'; description: string }[];
+    durability: 'high' | 'medium' | 'low';
+    interpretation: string;
+}
+
+// ─── Risk-Reward ───────────────────────────────────────────────────
+export interface RiskRewardProfile {
+    riskLevel: number;         // 1-10
+    rewardPotential: number;   // 1-10
+    ratio: number;             // reward/risk
+    rating: 'Excellent' | 'Good' | 'Fair' | 'Poor';
+    maxDrawdownEstimate: number; // % potential loss
+    upsidePotential: number;  // % potential gain
+    interpretation: string;
+}
+
+// ─── Dividend Deep Dive ────────────────────────────────────────────
+export interface DividendAnalysis {
+    yield: number;
+    annualDividend: number;
+    payoutRatio: number;
+    growthRate5Y: number;      // 5-year CAGR
+    yearsOfGrowth: number;
+    exDividendDate: string | null;
+    frequency: 'quarterly' | 'monthly' | 'annually' | 'semi-annually';
+    safety: 'very-safe' | 'safe' | 'moderate' | 'at-risk';
+    interpretation: string;
 }
 
 // ─── Sentiment (Groq) ─────────────────────────────────────────────
@@ -208,6 +310,14 @@ export interface AnalysisResponse {
     aiConsensus: AIConsensus | null;
     investmentScore: InvestmentScore | null;
     financialHealth: FinancialHealth | null;
+    nipunScore: NipunScore | null;
+    scenarioAnalysis: ScenarioAnalysis | null;
+    revenueBreakdown: RevenueBreakdown | null;
+    momentum: MomentumData | null;
+    valueGrowth: ValueGrowthProfile | null;
+    competitiveMoat: CompetitiveMoat | null;
+    riskReward: RiskRewardProfile | null;
+    dividendAnalysis: DividendAnalysis | null;
     report: string;
     audit: AuditResult | null;
     disclaimer: string;
