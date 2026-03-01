@@ -54,11 +54,18 @@ function SectionCard({ title, icon, delay, children, premium }: { title: string;
 }
 
 function formatN(n: number): string {
+    if (n == null || isNaN(n)) return '$0';
     if (n >= 1e12) return `$${(n / 1e12).toFixed(2)}T`;
     if (n >= 1e9) return `$${(n / 1e9).toFixed(1)}B`;
     if (n >= 1e6) return `$${(n / 1e6).toFixed(1)}M`;
     if (n >= 1e3) return `$${(n / 1e3).toFixed(0)}K`;
     return n.toString();
+}
+
+/** Safe number: returns 0 for null/undefined/NaN to prevent .toFixed() crashes */
+function safe(n: number | null | undefined): number {
+    if (n == null || isNaN(n) || !isFinite(n)) return 0;
+    return n;
 }
 
 export default function ReportViewer() {
@@ -103,7 +110,7 @@ export default function ReportViewer() {
                                 <div className={`grade-display text-6xl leading-none ${GRADE_COLORS[result.nipunScore.grade] || 'text-white'}`} style={{ WebkitTextFillColor: 'unset', background: 'none' }}>
                                     {result.nipunScore.grade}
                                 </div>
-                                <div className="mt-1 font-mono text-base text-white/70">{result.nipunScore.numericScore}/100</div>
+                                <div className="mt-1 font-mono text-base text-white/70">{safe(result.nipunScore.numericScore)}/100</div>
                                 <div className="mt-0.5 text-base text-white/80">{result.nipunScore.confidence}% confident</div>
                             </div>
                             <div className="flex-1 min-w-0">
@@ -166,7 +173,7 @@ export default function ReportViewer() {
                         <div className="grid grid-cols-2 gap-3 mb-3">
                             <div className={`rounded-xl border p-3 text-center ${result.financialHealth.altmanZone === 'safe' ? 'border-emerald/20 bg-emerald/5' : result.financialHealth.altmanZone === 'grey' ? 'border-gold/20 bg-gold/5' : 'border-rose/20 bg-rose/5'}`}>
                                 <div className="stat-label mb-0.5">Altman Z-Score</div>
-                                <div className="font-mono text-xl font-bold text-white">{result.financialHealth.altmanZScore.toFixed(2)}</div>
+                                <div className="font-mono text-xl font-bold text-white">{safe(result.financialHealth.altmanZScore).toFixed(2)}</div>
                                 <div className={`text-base font-semibold uppercase ${result.financialHealth.altmanZone === 'safe' ? 'text-emerald' : result.financialHealth.altmanZone === 'grey' ? 'text-gold' : 'text-rose'}`}>
                                     {result.financialHealth.altmanZone === 'safe' ? '✓ Safe' : result.financialHealth.altmanZone === 'grey' ? '~ Grey' : '✗ Distress'}
                                 </div>
@@ -181,9 +188,9 @@ export default function ReportViewer() {
                         </div>
                         <div className="grid grid-cols-3 gap-2 mb-3">
                             {[
-                                { l: 'Current Ratio', v: result.financialHealth.currentRatio.toFixed(2) },
-                                { l: 'Quick Ratio', v: result.financialHealth.quickRatio.toFixed(2) },
-                                { l: 'Interest Cov.', v: `${result.financialHealth.interestCoverage.toFixed(1)}x` },
+                                { l: 'Current Ratio', v: safe(result.financialHealth.currentRatio).toFixed(2) },
+                                { l: 'Quick Ratio', v: safe(result.financialHealth.quickRatio).toFixed(2) },
+                                { l: 'Interest Cov.', v: `${safe(result.financialHealth.interestCoverage).toFixed(1)}x` },
                             ].map(m => (
                                 <div key={m.l} className="rounded-xl bg-white/[0.03] border border-white/[0.05] p-2 text-center">
                                     <div className="stat-label">{m.l}</div>
@@ -194,10 +201,10 @@ export default function ReportViewer() {
                         <div className="mb-2">
                             <div className="flex justify-between mb-1">
                                 <span className="stat-label">52-Week Position</span>
-                                <span className="font-mono text-base text-white/80">{result.financialHealth.pricePositionPercent.toFixed(0)}%</span>
+                                <span className="font-mono text-base text-white/80">{safe(result.financialHealth.pricePositionPercent).toFixed(0)}%</span>
                             </div>
                             <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
-                                <div className="h-full rounded-full bg-gradient-to-r from-rose via-gold to-emerald" style={{ width: `${result.financialHealth.pricePositionPercent}%` }} />
+                                <div className="h-full rounded-full bg-gradient-to-r from-rose via-gold to-emerald" style={{ width: `${safe(result.financialHealth.pricePositionPercent)}%` }} />
                             </div>
                         </div>
                         <p className="text-base text-white/90 leading-relaxed">{result.financialHealth.healthSummary}</p>
@@ -212,9 +219,9 @@ export default function ReportViewer() {
                                 return (
                                     <div key={sc.label} className={`rounded-xl border p-3 text-center ${sc.label === 'Bull Case' ? 'border-emerald/15 bg-emerald/5' : sc.label === 'Bear Case' ? 'border-rose/15 bg-rose/5' : 'border-white/10 bg-white/[0.03]'}`}>
                                         <div className="stat-label mb-1">{sc.label}</div>
-                                        <div className="font-mono text-lg font-bold text-white">${sc.price}</div>
+                                        <div className="font-mono text-lg font-bold text-white">${safe(sc.price).toFixed(0)}</div>
                                         <div className={`text-base font-mono font-bold ${isUp ? 'text-emerald' : 'text-rose'}`}>
-                                            {isUp ? '+' : ''}{sc.upside.toFixed(1)}%
+                                            {isUp ? '+' : ''}{safe(sc.upside).toFixed(1)}%
                                         </div>
                                         <div className="mt-1 text-base text-white/80">{sc.probability}% probability</div>
                                     </div>
@@ -293,7 +300,7 @@ export default function ReportViewer() {
                                 <div className={`font-display text-base font-bold uppercase ${result.momentum.trend.includes('up') ? 'text-emerald' : result.momentum.trend.includes('down') ? 'text-rose' : 'text-gold'}`}>
                                     {result.momentum.trend.replace('-', ' ')} trend
                                 </div>
-                                <div className="mt-1 text-base text-white/90">Relative Strength vs S&P 500: <span className={`font-mono font-semibold ${result.momentum.relativeStrength > 1 ? 'text-emerald' : 'text-rose'}`}>{result.momentum.relativeStrength.toFixed(2)}x</span></div>
+                                <div className="mt-1 text-base text-white/90">Relative Strength vs S&P 500: <span className={`font-mono font-semibold ${safe(result.momentum.relativeStrength) > 1 ? 'text-emerald' : 'text-rose'}`}>{safe(result.momentum.relativeStrength).toFixed(2)}x</span></div>
                             </div>
                         </div>
                         <div className="grid grid-cols-3 gap-2 mb-3">
@@ -343,7 +350,7 @@ export default function ReportViewer() {
                     <SectionCard title="Risk-Reward Profile" icon="⚖️" delay="0.35s">
                         <div className="flex items-center gap-5 mb-4">
                             <div className={`rounded-xl border px-5 py-3 text-center ${result.riskReward.rating === 'Excellent' ? 'border-emerald/20 bg-emerald/5' : result.riskReward.rating === 'Good' ? 'border-sky/20 bg-sky/5' : result.riskReward.rating === 'Fair' ? 'border-gold/20 bg-gold/5' : 'border-rose/20 bg-rose/5'}`}>
-                                <div className="font-mono text-2xl font-bold text-white">{result.riskReward.ratio.toFixed(1)}</div>
+                                <div className="font-mono text-2xl font-bold text-white">{safe(result.riskReward.ratio).toFixed(1)}</div>
                                 <div className="stat-label">ratio</div>
                                 <div className={`text-base font-semibold ${result.riskReward.rating === 'Excellent' || result.riskReward.rating === 'Good' ? 'text-emerald' : 'text-gold'}`}>{result.riskReward.rating}</div>
                             </div>
@@ -446,12 +453,12 @@ export default function ReportViewer() {
             {/* ══════════ Financial Metrics Row ══════════ */}
             <div className="mb-5 grid grid-cols-3 gap-3 sm:grid-cols-6">
                 {[
-                    { l: 'Price', v: `$${result.financials.price.toFixed(2)}`, accent: true },
-                    { l: 'Change', v: `${result.financials.change > 0 ? '+' : ''}${result.financials.change.toFixed(2)} (${result.financials.changePercent > 0 ? '+' : ''}${result.financials.changePercent.toFixed(2)}%)`, color: result.financials.change >= 0 ? 'text-emerald' : 'text-rose' },
-                    { l: 'P/E', v: result.financials.pe.toFixed(2) },
-                    { l: 'EPS', v: `$${result.financials.eps.toFixed(2)}` },
-                    { l: 'Mkt Cap', v: formatN(result.financials.marketCap) },
-                    { l: 'Beta', v: result.financials.beta.toFixed(2) },
+                    { l: 'Price', v: `$${safe(result.financials.price).toFixed(2)}`, accent: true },
+                    { l: 'Change', v: `${safe(result.financials.change) > 0 ? '+' : ''}${safe(result.financials.change).toFixed(2)} (${safe(result.financials.changePercent) > 0 ? '+' : ''}${safe(result.financials.changePercent).toFixed(2)}%)`, color: safe(result.financials.change) >= 0 ? 'text-emerald' : 'text-rose' },
+                    { l: 'P/E', v: safe(result.financials.pe).toFixed(2) },
+                    { l: 'EPS', v: `$${safe(result.financials.eps).toFixed(2)}` },
+                    { l: 'Mkt Cap', v: formatN(safe(result.financials.marketCap)) },
+                    { l: 'Beta', v: safe(result.financials.beta).toFixed(2) },
                 ].map(item => (
                     <div key={item.l} className="card p-3">
                         <div className="stat-label">{item.l}</div>
@@ -600,10 +607,10 @@ export default function ReportViewer() {
                                 <tbody>
                                     <tr className="border-b border-accent/10 bg-accent/5">
                                         <td className="py-2 text-sm font-mono font-bold text-accent">{result.ticker}</td>
-                                        <td className="py-2 text-right text-sm font-mono text-white/70">${result.financials.price.toFixed(2)}</td>
-                                        <td className="py-2 text-right text-sm font-mono text-white/70">{formatN(result.financials.marketCap)}</td>
-                                        <td className="py-2 text-right text-sm font-mono text-white/70">{result.financials.pe.toFixed(1)}</td>
-                                        <td className="py-2 text-right text-sm font-mono text-white/70">${result.financials.eps.toFixed(2)}</td>
+                                        <td className="py-2 text-right text-sm font-mono text-white/70">${safe(result.financials.price).toFixed(2)}</td>
+                                        <td className="py-2 text-right text-sm font-mono text-white/70">{formatN(safe(result.financials.marketCap))}</td>
+                                        <td className="py-2 text-right text-sm font-mono text-white/70">{safe(result.financials.pe).toFixed(1)}</td>
+                                        <td className="py-2 text-right text-sm font-mono text-white/70">${safe(result.financials.eps).toFixed(2)}</td>
                                         <td className={`py-2 text-right font-mono font-semibold ${result.financials.changePercent >= 0 ? 'text-emerald' : 'text-rose'}`}>{result.financials.changePercent > 0 ? '+' : ''}{result.financials.changePercent.toFixed(2)}%</td>
                                     </tr>
                                     {result.peerComparison.peers.map(p => (
@@ -664,12 +671,12 @@ export default function ReportViewer() {
                         <SectionCard title="Analyst Consensus" icon="📊" delay="0.87s" premium>
                             <div className="mb-3">
                                 <div className={`text-center rounded-xl border px-4 py-2 mb-3 ${result.analystConsensus.consensusRating.includes('Buy') ? 'border-emerald/20 bg-emerald/5' :
-                                        result.analystConsensus.consensusRating.includes('Sell') ? 'border-rose/20 bg-rose/5' :
-                                            'border-gold/20 bg-gold/5'
+                                    result.analystConsensus.consensusRating.includes('Sell') ? 'border-rose/20 bg-rose/5' :
+                                        'border-gold/20 bg-gold/5'
                                     }`}>
                                     <div className="stat-label mb-0.5">Wall Street Consensus</div>
                                     <div className={`font-display text-lg font-bold ${result.analystConsensus.consensusRating.includes('Buy') ? 'text-emerald' :
-                                            result.analystConsensus.consensusRating.includes('Sell') ? 'text-rose' : 'text-gold'
+                                        result.analystConsensus.consensusRating.includes('Sell') ? 'text-rose' : 'text-gold'
                                         }`}>{result.analystConsensus.consensusRating}</div>
                                 </div>
                             </div>
@@ -848,8 +855,8 @@ export default function ReportViewer() {
                         <div className="grid gap-3 sm:grid-cols-3 mb-3">
                             {/* Bollinger Bands */}
                             <div className={`rounded-xl border p-3 ${result.extendedTechnicals.bollingerBands.signal === 'overbought' ? 'border-rose/15 bg-rose/5' :
-                                    result.extendedTechnicals.bollingerBands.signal === 'oversold' ? 'border-emerald/15 bg-emerald/5' :
-                                        'border-white/10 bg-white/[0.03]'
+                                result.extendedTechnicals.bollingerBands.signal === 'oversold' ? 'border-emerald/15 bg-emerald/5' :
+                                    'border-white/10 bg-white/[0.03]'
                                 }`}>
                                 <div className="stat-label mb-1">Bollinger Bands</div>
                                 <div className="space-y-0.5 font-mono text-xs text-white/70">
@@ -858,14 +865,14 @@ export default function ReportViewer() {
                                     <div className="flex justify-between"><span>Lower</span><span className="text-white/90">${result.extendedTechnicals.bollingerBands.lower.toFixed(2)}</span></div>
                                 </div>
                                 <div className={`mt-1 text-xs font-semibold uppercase ${result.extendedTechnicals.bollingerBands.signal === 'overbought' ? 'text-rose' :
-                                        result.extendedTechnicals.bollingerBands.signal === 'oversold' ? 'text-emerald' : 'text-white/50'
+                                    result.extendedTechnicals.bollingerBands.signal === 'oversold' ? 'text-emerald' : 'text-white/50'
                                     }`}>{result.extendedTechnicals.bollingerBands.signal}</div>
                             </div>
 
                             {/* Stochastic */}
                             <div className={`rounded-xl border p-3 ${result.extendedTechnicals.stochastic.signal === 'overbought' ? 'border-rose/15 bg-rose/5' :
-                                    result.extendedTechnicals.stochastic.signal === 'oversold' ? 'border-emerald/15 bg-emerald/5' :
-                                        'border-white/10 bg-white/[0.03]'
+                                result.extendedTechnicals.stochastic.signal === 'oversold' ? 'border-emerald/15 bg-emerald/5' :
+                                    'border-white/10 bg-white/[0.03]'
                                 }`}>
                                 <div className="stat-label mb-1">Stochastic Oscillator</div>
                                 <div className="font-mono text-xl font-bold text-white text-center mb-1">{result.extendedTechnicals.stochastic.k.toFixed(1)}</div>
@@ -873,7 +880,7 @@ export default function ReportViewer() {
                                     <div className="h-full rounded-full bg-sky" style={{ width: `${result.extendedTechnicals.stochastic.k}%` }} />
                                 </div>
                                 <div className={`mt-1 text-xs font-semibold uppercase text-center ${result.extendedTechnicals.stochastic.signal === 'overbought' ? 'text-rose' :
-                                        result.extendedTechnicals.stochastic.signal === 'oversold' ? 'text-emerald' : 'text-white/50'
+                                    result.extendedTechnicals.stochastic.signal === 'oversold' ? 'text-emerald' : 'text-white/50'
                                     }`}>{result.extendedTechnicals.stochastic.signal}</div>
                             </div>
 
