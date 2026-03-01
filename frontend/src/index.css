@@ -1,0 +1,185 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Base Styles ───────────────────────────────────────────────── */
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(14, 165, 233, 0.3) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: rgba(14, 165, 233, 0.3);
+    border-radius: 3px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgba(14, 165, 233, 0.5);
+  }
+
+  ::selection {
+    background: rgba(14, 165, 233, 0.3);
+    color: white;
+  }
+
+  body {
+    background: #0A0A0F;
+    min-height: 100vh;
+  }
+}
+
+/* ─── Glass Card Component ──────────────────────────────────────── */
+@layer components {
+  .glass-card {
+    @apply relative overflow-hidden rounded-xl border border-white/[0.06];
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.04) 0%,
+      rgba(255, 255, 255, 0.01) 100%
+    );
+    backdrop-filter: blur(20px);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.03),
+      0 4px 24px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
+  }
+
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(14, 165, 233, 0.2) 50%,
+      transparent 100%
+    );
+  }
+
+  .glass-card-hover {
+    @apply glass-card transition-all duration-300;
+  }
+
+  .glass-card-hover:hover {
+    border-color: rgba(14, 165, 233, 0.15);
+    box-shadow:
+      0 0 0 1px rgba(14, 165, 233, 0.08),
+      0 8px 32px rgba(0, 0, 0, 0.5),
+      0 0 20px rgba(14, 165, 233, 0.05),
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+  }
+
+  /* ─── Button Styles ─────────────────────────────────────────── */
+  .btn-primary {
+    @apply relative inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3
+           font-semibold text-white transition-all duration-300
+           bg-gradient-to-r from-accent-dark to-accent
+           hover:from-accent hover:to-accent-light
+           focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-2 focus:ring-offset-base;
+    box-shadow: 0 0 20px rgba(14, 165, 233, 0.2);
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 0 30px rgba(14, 165, 233, 0.35);
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-secondary {
+    @apply relative inline-flex items-center justify-center gap-2 rounded-lg px-6 py-3
+           font-semibold text-white/80 transition-all duration-300
+           bg-white/[0.04] border border-white/[0.08]
+           hover:bg-white/[0.08] hover:text-white hover:border-white/[0.12]
+           focus:outline-none focus:ring-2 focus:ring-white/20 focus:ring-offset-2 focus:ring-offset-base;
+  }
+
+  /* ─── Input Styles ──────────────────────────────────────────── */
+  .input-field {
+    @apply w-full rounded-lg border border-white/[0.08] bg-white/[0.03] px-4 py-3
+           text-white placeholder-white/30 transition-all duration-300
+           focus:border-accent/40 focus:bg-white/[0.05] focus:outline-none focus:ring-1 focus:ring-accent/30;
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* ─── Badge Styles ──────────────────────────────────────────── */
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+
+  .badge-success {
+    @apply badge bg-success/10 text-success border border-success/20;
+  }
+
+  .badge-warning {
+    @apply badge bg-warning/10 text-warning border border-warning/20;
+  }
+
+  .badge-danger {
+    @apply badge bg-danger/10 text-danger border border-danger/20;
+  }
+
+  .badge-accent {
+    @apply badge bg-accent/10 text-accent border border-accent/20;
+  }
+
+  /* ─── Phase Indicator ───────────────────────────────────────── */
+  .phase-dot {
+    @apply h-2 w-2 rounded-full;
+  }
+
+  .phase-dot-active {
+    @apply phase-dot bg-accent animate-pulse;
+    box-shadow: 0 0 8px rgba(14, 165, 233, 0.6);
+  }
+
+  .phase-dot-complete {
+    @apply phase-dot bg-success;
+  }
+
+  .phase-dot-pending {
+    @apply phase-dot bg-white/20;
+  }
+
+  /* ─── Skeleton Loading ──────────────────────────────────────── */
+  .skeleton {
+    @apply rounded-lg;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.03) 0%,
+      rgba(255, 255, 255, 0.06) 50%,
+      rgba(255, 255, 255, 0.03) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+  }
+}
+
+/* ─── Custom Utilities ──────────────────────────────────────────── */
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, #0EA5E9 0%, #38BDF8 50%, #7DD3FC 100%);
+  }
+
+  .bg-mesh {
+    background-image:
+      radial-gradient(at 20% 80%, rgba(14, 165, 233, 0.06) 0%, transparent 50%),
+      radial-gradient(at 80% 20%, rgba(56, 189, 248, 0.04) 0%, transparent 50%),
+      radial-gradient(at 50% 50%, rgba(14, 165, 233, 0.02) 0%, transparent 70%);
+  }
+}

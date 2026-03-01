@@ -1,0 +1,12 @@
+name = "nipun-ai-worker"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+
+# Environment variables — swap these placeholder values with your real keys if you want
+# server-side defaults. Otherwise, keys are sent per-request via BYOK.
+[vars]
+ENVIRONMENT = "production"
+
+# CORS: allowed origins (comma-separated). Update after deploying Pages.
+# The worker reads this at runtime to set Access-Control-Allow-Origin.
+ALLOWED_ORIGINS = "http://localhost:5173,https://nipun-ai.pages.dev,https://e9d0df18.nipun-ai.pages.dev"
