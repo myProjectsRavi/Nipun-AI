@@ -3,6 +3,9 @@
  * Uses the Web Crypto API — available in all modern browsers at zero cost.
  */
 
+/** PBKDF2 iteration count — higher = slower brute-force, 100K is OWASP recommended minimum */
+const PBKDF2_ITERATIONS = 100_000;
+
 const STORAGE_KEY = 'nipun_encrypted_keys';
 const SALT_KEY = 'nipun_salt';
 
@@ -44,7 +47,7 @@ async function deriveKey(passphrase: string, salt: Uint8Array): Promise<CryptoKe
         {
             name: 'PBKDF2',
             salt: salt.buffer,
-            iterations: 100000,
+            iterations: PBKDF2_ITERATIONS,
             hash: 'SHA-256',
         },
         keyMaterial,

@@ -6,52 +6,9 @@ import type { SECFiling } from './types';
  * Requires a User-Agent header with contact info (SEC requirement).
  */
 export async function fetchSECFilings(ticker: string): Promise<SECFiling[]> {
-    // Step 1: Look up CIK from ticker
+    // Look up CIK from SEC's ticker map, then fetch filings by CIK
     const tickerLower = ticker.toLowerCase();
-    const lookupRes = await fetch(
-        `https://efts.sec.gov/LATEST/search-index?q="${encodeURIComponent(ticker)}"&dateRange=custom&startdt=${getDateMonthsAgo(6)}&enddt=${getToday()}&forms=10-K,10-Q,8-K,4&from=0&size=10`,
-        {
-            headers: {
-                'User-Agent': 'NipunAI research@nipun.ai',
-                'Accept': 'application/json',
-            },
-        }
-    );
 
-    // Fallback: try the EDGAR full-text search
-    const searchRes = await fetch(
-        `https://efts.sec.gov/LATEST/search-index?q=%22${encodeURIComponent(ticker)}%22&forms=10-K,10-Q,8-K,4&dateRange=custom&startdt=${getDateMonthsAgo(6)}&enddt=${getToday()}&from=0&size=10`,
-        {
-            headers: {
-                'User-Agent': 'NipunAI research@nipun.ai',
-                'Accept': 'application/json',
-            },
-        }
-    );
-
-    // Try the simpler EDGAR company search
-    const companyRes = await fetch(
-        `https://efts.sec.gov/LATEST/search-index?q=%22${encodeURIComponent(ticker.toUpperCase())}%22&forms=10-K,10-Q,8-K&from=0&size=8`,
-        {
-            headers: {
-                'User-Agent': 'NipunAI research@nipun.ai',
-                'Accept': 'application/json',
-            },
-        }
-    );
-
-    // Try EDGAR full-text search API
-    const ftRes = await fetch(
-        `https://efts.sec.gov/LATEST/search-index?q=${encodeURIComponent(ticker)}&from=0&size=10`,
-        {
-            headers: {
-                'User-Agent': 'NipunAI research@nipun.ai',
-                'Accept': 'application/json',
-            },
-        }
-    );
-
-    // Use the ticker lookup to get CIK, then fetch filings  
     try {
         const tickerMapRes = await fetch(
             'https://www.sec.gov/files/company_tickers.json',
@@ -115,14 +72,4 @@ export async function fetchSECFilings(ticker: string): Promise<SECFiling[]> {
     } catch {
         return [];
     }
-}
-
-function getToday(): string {
-    return new Date().toISOString().split('T')[0];
-}
-
-function getDateMonthsAgo(months: number): string {
-    const d = new Date();
-    d.setMonth(d.getMonth() - months);
-    return d.toISOString().split('T')[0];
 }

@@ -374,13 +374,13 @@ export function computeRiskReward(financials: FinancialData, candles: number[] |
     const h52 = financials.weekHigh52 || price;
     const l52 = financials.weekLow52 || price;
 
-    // Max drawdown estimate from 52-week range
-    const maxDrawdownEstimate = h52 > 0 ? round2(((h52 - l52) / h52) * 100) : 20;
+    // Max drawdown: prefer historical candle data over 52-week range approximation
+    let maxDrawdownEstimate = h52 > 0 ? round2(((h52 - l52) / h52) * 100) : 20;
 
     // Upside potential from 52-week high
     const upsidePotential = price > 0 ? round2(((h52 - price) / price) * 100) : 0;
 
-    // Historical max drawdown from candles
+    // Compute historical max drawdown from candle data (more accurate than 52-week range)
     if (candles && candles.length > 50) {
         let peak = candles[0];
         let maxDD = 0;
@@ -389,6 +389,7 @@ export function computeRiskReward(financials: FinancialData, candles: number[] |
             const dd = (peak - c) / peak;
             if (dd > maxDD) maxDD = dd;
         }
+        maxDrawdownEstimate = round2(maxDD * 100);
     }
 
     // Risk level: beta + volatility + drawdown

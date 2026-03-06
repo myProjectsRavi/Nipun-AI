@@ -1,4 +1,4 @@
-import type { AnalysisRequest, AnalysisResponse, AnalysisKeys, Env } from './types';
+import type { AnalysisResponse, AnalysisKeys, Env, FinancialData, TechnicalAnalysis, SentimentResult, RiskFactor, Catalyst, InsiderActivity, EarningsData } from './types';
 import { fetchFinancials, fetchTechnicalIndicators, fetchInsiderTrades, fetchEarningsSurprises, fetchPeers, fetchAnalystConsensus, fetchPriceTargets, fetchInstitutionalOwnership } from './finnhub';
 import { fetchRedditPosts } from './rss';
 import { analyzeSentiment } from './groq';
@@ -74,7 +74,16 @@ export default {
             }
 
             try {
-                const body = (await request.json()) as { ticker?: string };
+                let body: { ticker?: string };
+                try {
+                    body = (await request.json()) as { ticker?: string };
+                } catch {
+                    return handleCORS(
+                        request,
+                        env,
+                        Response.json({ error: 'Invalid JSON body. Send { "ticker": "AAPL" }' }, { status: 400 })
+                    );
+                }
                 const ticker = body.ticker;
 
                 if (!ticker || typeof ticker !== 'string') {
@@ -96,7 +105,7 @@ export default {
                     );
                 }
 
-                // Extract API keys from header (security: not in body)
+                // Extract API keys from header (security: keys must be in X-Nipun-Keys header, not body)
                 let keys: AnalysisKeys | null = null;
                 const keysHeader = request.headers.get('X-Nipun-Keys');
                 if (keysHeader) {
@@ -106,12 +115,6 @@ export default {
                         // Malformed header — treat as demo mode
                         keys = null;
                     }
-                }
-
-                // Fallback: check body for backward compatibility
-                if (!keys) {
-                    const bodyWithKeys = body as { keys?: AnalysisKeys };
-                    if (bodyWithKeys.keys) keys = bodyWithKeys.keys;
                 }
 
                 // Check if we should use demo mode (any required key missing = demo)
@@ -347,13 +350,13 @@ async function phaseFetchData(upperTicker: string, keys: AnalysisKeys) {
 
 /** Phase 2: Compute all derived metrics (ZERO API calls) */
 function phaseCompute(
-    financials: ReturnType<typeof getMockFinancials>,
-    technicals: { rsi: any; macd: any; sma50: any; sma200: any; overallSignal: any; goldenDeathCross: any },
+    financials: FinancialData,
+    technicals: TechnicalAnalysis,
     candles: { closes: number[]; highs: number[]; lows: number[] } | null,
-    sentiment: ReturnType<typeof getMockSentiment>,
-    risks: ReturnType<typeof getMockRisks>,
-    insiderActivity: any,
-    earnings: any,
+    sentiment: SentimentResult,
+    risks: RiskFactor[],
+    insiderActivity: InsiderActivity | null,
+    earnings: EarningsData | null,
 ) {
     const investmentScore = computeInvestmentScore(financials, technicals, sentiment, risks, insiderActivity, earnings);
     const financialHealth = computeFinancialHealth(financials, candles?.closes ?? null);
@@ -379,7 +382,7 @@ function phaseCompute(
 }
 
 /** Phase 3: AI Synthesis (parallel Gemini calls) */
-async function phaseAISynth(financials: any, sentiment: any, risks: any, catalysts: any, keys: AnalysisKeys, upperTicker: string) {
+async function phaseAISynth(financials: FinancialData, sentiment: SentimentResult, risks: RiskFactor[], catalysts: Catalyst[], keys: AnalysisKeys, upperTicker: string) {
     const [report, premiumInsights] = await Promise.all([
         (async () => {
             try { return await synthesizeReport(financials, sentiment, risks, catalysts, keys.gemini); }
@@ -394,7 +397,7 @@ async function phaseAISynth(financials: any, sentiment: any, risks: any, catalys
 }
 
 /** Phase 4: Secondary AI opinions (parallel, non-fatal) */
-async function phaseSecondaryAI(financials: any, sentiment: any, risks: any, catalysts: any, report: string, keys: AnalysisKeys) {
+async function phaseSecondaryAI(financials: FinancialData, sentiment: SentimentResult, risks: RiskFactor[], catalysts: Catalyst[], report: string, keys: AnalysisKeys) {
     const [aiConsensus, audit] = await Promise.all([
         (async () => {
             if (keys.cerebras) {

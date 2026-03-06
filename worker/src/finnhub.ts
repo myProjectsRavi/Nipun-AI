@@ -372,7 +372,7 @@ export async function fetchPriceTargets(ticker: string, apiKey: string, currentP
             targetLow: Number(data.targetLow) || 0,
             targetMean,
             targetMedian: Number(data.targetMedian) || 0,
-            numberOfAnalysts: Number(data.lastUpdated ? 1 : 0) || 0,
+            numberOfAnalysts: Number(data.numberOfAnalysts) || 0,
             currentPrice,
             upsidePercent: currentPrice > 0 ? Math.round(((targetMean - currentPrice) / currentPrice) * 10000) / 100 : 0,
         };

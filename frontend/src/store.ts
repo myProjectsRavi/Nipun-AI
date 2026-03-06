@@ -2,6 +2,9 @@ import { create } from 'zustand';
 import type { APIKeys } from './utils/crypto';
 import { encryptCache, decryptCache, migrateLegacyKeys } from './utils/crypto';
 
+/** Cache TTL: 4 hours in milliseconds */
+const CACHE_TTL_MS = 4 * 60 * 60 * 1000;
+
 // ─── Types matching the Worker response ────────────────────────────
 export interface FinancialData {
     ticker: string;
@@ -418,8 +421,13 @@ export const useStore = create<AppState>((set, get) => ({
     clearResult: () => set({ result: null, error: null }),
 
     runAnalysis: async (workerUrl?: string) => {
-        const { ticker, keys, demoMode } = get();
-        if (!ticker) return;
+        const { ticker: rawTicker, keys, demoMode } = get();
+        if (!rawTicker) return;
+        const ticker = rawTicker.toUpperCase().trim();
+
+        // Prevent duplicate concurrent requests for the same ticker
+        if (inflightTicker === ticker) return;
+        inflightTicker = ticker;
 
         // Migrate legacy af_ keys on first use
         migrateLegacyKeys();
@@ -433,8 +441,7 @@ export const useStore = create<AppState>((set, get) => ({
                     if (decrypted) {
                         const parsedData = JSON.parse(decrypted) as AnalysisResponse;
                         const cacheTime = new Date(parsedData.timestamp).getTime();
-                        // 4 hours cache TTL
-                        if (Date.now() - cacheTime < 4 * 60 * 60 * 1000) {
+                        if (Date.now() - cacheTime < CACHE_TTL_MS) {
                             set({ result: parsedData, view: 'report', error: null, analysisPhase: '' });
                             return; // Use cache
                         }
@@ -484,6 +491,7 @@ export const useStore = create<AppState>((set, get) => ({
             const msg = err instanceof Error ? err.message : 'Analysis failed';
             set({ error: msg, analysisPhase: '' });
         } finally {
+            inflightTicker = null;
             set({ isAnalyzing: false });
         }
     },
