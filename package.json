@@ -1,0 +1,24 @@
+{
+    "name": "nipun-ai",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "format": "prettier --write .",
+        "format:check": "prettier --check .",
+        "test": "cd worker && npm test",
+        "typecheck:frontend": "cd frontend && npx tsc --noEmit",
+        "typecheck:worker": "cd worker && npx tsc --noEmit",
+        "typecheck": "npm run typecheck:frontend && npm run typecheck:worker"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.28.0",
+        "eslint": "^9.28.0",
+        "eslint-config-prettier": "^10.1.5",
+        "eslint-plugin-react-hooks": "^5.2.0",
+        "globals": "^16.1.0",
+        "prettier": "^3.5.3",
+        "typescript-eslint": "^8.33.1"
+    }
+}

@@ -5,6 +5,15 @@
 [![Infrastructure: Cloudflare Workers](https://img.shields.io/badge/Infra-Cloudflare_Workers-orange?style=for-the-badge&logo=cloudflare)](https://workers.cloudflare.com/)
 [![Security: AES-256-GCM](https://img.shields.io/badge/Security-AES--256--GCM-red?style=for-the-badge)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
 [![Zero Cost](https://img.shields.io/badge/Cost-$0%2Fmonth-brightgreen?style=for-the-badge)](https://github.com/yourusername/Nipun-AI)
+[![CI](https://img.shields.io/github/actions/workflow/status/yourusername/Nipun-AI/ci.yml?label=CI&style=for-the-badge)](https://github.com/yourusername/Nipun-AI/actions)
+[![Tests](https://img.shields.io/badge/Tests-74%20passing-brightgreen?style=for-the-badge)](https://github.com/yourusername/Nipun-AI)
+
+### 🚀 One-Click Deploy
+
+| Component | Deploy |
+|-----------|--------|
+| **Worker** (API) | [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/yourusername/Nipun-AI&authed=true&fields={"ALLOWED_ORIGINS":"*","ENVIRONMENT":"production"}&resourceType=workers&deploy-source=dir:worker) |
+| **Frontend** (UI) | [![Deploy to Cloudflare Pages](https://img.shields.io/badge/Deploy-Cloudflare%20Pages-orange?style=for-the-badge&logo=cloudflare)](https://dash.cloudflare.com/?to=/:account/pages/new/provider/github) |
 
 > **55+ data dimensions · 5 AI models · 3 valuation methods · Zero infrastructure — the institutional-grade financial analysis platform that costs $0/month.**
 
@@ -60,12 +69,13 @@ Open `http://localhost:5173` → Enter API keys → Analyze any US stock ticker.
 | Earnings Quality Score | ✅ | ❌ | ❌ | ❌ | ✅ |
 | Value vs Growth Classification | ✅ | ❌ | ❌ | ❌ | ✅ |
 | Dividend Safety Analysis | ✅ | ✅ | ❌ | ✅ | ✅ |
+| Research Sources (50+ Primary Links) | ✅ | ❌ | ❌ | ❌ | ✅ |
 | 55+ Data Dimensions | ✅ | ❌ | ❌ | ❌ | ✅ |
 | **Completely Free** | **✅** | **❌** | **✅** | **✅** | **❌ ($24K/yr)** |
 | **BYOK (Zero Server-Side Key Storage)** | **✅** | **N/A** | **N/A** | **N/A** | **N/A** |
 | **Zero Infrastructure** | **✅** | **❌** | **❌** | **❌** | **❌** |
 
-**Nipun AI: 27/27** · Screener.in: 5/27 · Perplexity: 4/27 · Yahoo Finance: 7/27 · Bloomberg: 22/27 (at $24K/year)
+**Nipun AI: 28/28** · Screener.in: 5/28 · Perplexity: 4/28 · Yahoo Finance: 7/28 · Bloomberg: 23/28 (at $24K/year)
 
 ---
 
