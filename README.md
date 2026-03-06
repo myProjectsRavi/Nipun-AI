@@ -1,12 +1,11 @@
 # 🧠 Nipun AI — The Open-Source Bloomberg Alternative
 
-[![GitHub Stars](https://img.shields.io/github/stars/myProjectsRavi/Nipun-AI?style=for-the-badge&color=ffd700)](https://github.com/myProjectsRavi/Nipun-AI)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![Infrastructure: Cloudflare Workers](https://img.shields.io/badge/Infra-Cloudflare_Workers-orange?style=for-the-badge&logo=cloudflare)](https://workers.cloudflare.com/)
-[![Security: AES-256-GCM](https://img.shields.io/badge/Security-AES--256--GCM-red?style=for-the-badge)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
+[![Security: AES-256-GCM](https://img.shields.io/badge/Security-AES--256--GCM-red?style=for-the-badge)](SECURITY.md)
 [![Zero Cost](https://img.shields.io/badge/Cost-$0%2Fmonth-brightgreen?style=for-the-badge)](https://github.com/myProjectsRavi/Nipun-AI)
-[![CI](https://img.shields.io/github/actions/workflow/status/myProjectsRavi/Nipun-AI/ci.yml?label=CI&style=for-the-badge)](https://github.com/myProjectsRavi/Nipun-AI/actions)
-[![Tests](https://img.shields.io/badge/Tests-74%20passing-brightgreen?style=for-the-badge)](https://github.com/myProjectsRavi/Nipun-AI)
+[![Tests](https://img.shields.io/badge/Tests-74_passing-brightgreen?style=for-the-badge)](https://github.com/myProjectsRavi/Nipun-AI)
+[![Open Source](https://img.shields.io/badge/Open_Source-100%25-blueviolet?style=for-the-badge&logo=github)](https://github.com/myProjectsRavi/Nipun-AI)
 
 ### 🚀 One-Click Deploy
 
@@ -151,7 +150,7 @@ No servers. No databases. No Docker. No Kubernetes. Fork → `npx wrangler deplo
 └─────────────────────────┼──────────────────────────────────────┘
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│              CLOUDFLARE WORKER (Edge, 300+ PoPs)                │
+│              YOUR CLOUDFLARE WORKER (self-hosted, free tier)      │
 │                                                                 │
 │  Phase 1: phaseFetchData()     ← Finnhub, Reddit, SEC, Yahoo  │
 │  Phase 2: phaseCompute()       ← Zero API calls, pure math     │

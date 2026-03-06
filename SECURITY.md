@@ -117,9 +117,9 @@ Access-Control-Max-Age: 86400            # CORS preflight cache (24h)
 
 If you discover a security vulnerability, please report it responsibly:
 
-1. **Do not** open a public GitHub issue
-2. Use [GitHub's private vulnerability reporting](https://github.com/myProjectsRavi/Nipun-AI/security/advisories/new) (recommended)
-3. Include: description, steps to reproduce, potential impact
+1. **Do not** open a public GitHub issue with vulnerability details
+2. Open a [GitHub Issue](https://github.com/myProjectsRavi/Nipun-AI/issues/new) with the title `[SECURITY]` and a brief, non-exploitable description
+3. Include: description, steps to reproduce, and potential impact
 4. Confirmed vulnerabilities will be credited in the fix
 
 ---
