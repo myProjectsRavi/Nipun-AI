@@ -46,7 +46,7 @@ async function deriveKey(passphrase: string, salt: Uint8Array): Promise<CryptoKe
     return crypto.subtle.deriveKey(
         {
             name: 'PBKDF2',
-            salt: salt.buffer,
+            salt: salt.buffer as ArrayBuffer,
             iterations: PBKDF2_ITERATIONS,
             hash: 'SHA-256',
         },
@@ -92,9 +92,9 @@ export async function decryptKeys(passphrase: string): Promise<APIKeys | null> {
         const key = await deriveKey(passphrase, salt);
 
         const decrypted = await crypto.subtle.decrypt(
-            { name: 'AES-GCM', iv: iv.buffer },
+            { name: 'AES-GCM', iv: iv.buffer as ArrayBuffer },
             key,
-            data.buffer
+            data.buffer as ArrayBuffer
         );
 
         const decoder = new TextDecoder();
@@ -142,9 +142,9 @@ export async function decryptCache(stored: string): Promise<string | null> {
         const data = base64ToArray(payload.d);
         const key = await deriveKey(CACHE_KEY_PASSPHRASE, salt);
         const decrypted = await crypto.subtle.decrypt(
-            { name: 'AES-GCM', iv: iv.buffer },
+            { name: 'AES-GCM', iv: iv.buffer as ArrayBuffer },
             key,
-            data.buffer
+            data.buffer as ArrayBuffer
         );
         return new TextDecoder().decode(decrypted);
     } catch {
