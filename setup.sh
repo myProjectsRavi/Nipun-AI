@@ -76,6 +76,12 @@ echo ""
 echo -e "${YELLOW}[4/4]${NC} Starting Nipun AI..."
 echo ""
 
+# Kill anything already using these ports (prevents "Address already in use" on re-runs)
+echo -e "   Freeing ports 8787 and 5173..."
+lsof -ti:8787 | xargs kill -9 2>/dev/null || true
+lsof -ti:5173 | xargs kill -9 2>/dev/null || true
+sleep 1
+
 # Start worker in background
 (cd worker && npx wrangler dev --port 8787 2>&1 &)
 sleep 2
