@@ -17,7 +17,7 @@
 
 > **55+ data dimensions · 5 AI models · 3 valuation methods · Zero infrastructure — the institutional-grade financial analysis platform that costs $0/month.**
 
-Bloomberg charges $24,000/year. Nipun AI delivers comparable depth for **free** — deployable in under 5 minutes on Cloudflare's free tier with zero servers, zero databases, and zero maintenance.
+Bloomberg charges $24,000/year. Nipun AI delivers comparable depth for **free** - deployable in under 5 minutes on Cloudflare's free tier with zero servers, zero databases, and zero maintenance.
 
 ---
 
@@ -36,7 +36,7 @@ curl -fsSL https://raw.githubusercontent.com/myProjectsRavi/Nipun-AI/main/setup.
 1. [Download the repo](https://github.com/myProjectsRavi/Nipun-AI/archive/refs/heads/main.zip) and extract it
 2. Double-click `setup.bat`
 
-That's it — the app opens in your browser. Click **Demo Mode** to try instantly, or enter free API keys for live data.
+That's it - the app opens in your browser. Click **Demo Mode** to try instantly, or enter free API keys for live data.
 
 > **Already set up?** Next time, just run `./setup.sh` (or `setup.bat` on Windows) from the Nipun-AI folder.
 
@@ -63,7 +63,7 @@ Open `http://localhost:5173` → Enter API keys → Analyze any US stock ticker.
 
 ## ☕ Support
 
-Nipun AI is free, open-source, and always will be. If it's useful to you, a coffee is appreciated — never expected.
+Nipun AI is free, open-source, and always will be. If it's useful to you, a coffee is appreciated - never expected.
 
 <p align="center">
   <a href="https://www.paypal.com/paypalme/rtnlabs"><img src="https://img.shields.io/badge/Donate-PayPal-blue?style=for-the-badge&logo=paypal" alt="PayPal" /></a>&nbsp;
@@ -73,7 +73,7 @@ Nipun AI is free, open-source, and always will be. If it's useful to you, a coff
 
 <p align="center"><em>Donations are a voluntary thank-you for existing work — not a support contract.</em></p>
 
-> **🌐 Live Demo**: [nipun-ai.pages.dev](https://nipun-ai.pages.dev) runs in **demo mode** (mock data) to keep it free. For live data with your own API keys, deploy your own instance using the One-Click Deploy buttons above — it takes 5 minutes and costs $0/month.
+> **🌐 Try It**: Clone the repo and run `setup.sh` to try Nipun AI locally. **Demo Mode** works with zero API keys - or add your own free keys for live data.
 
 ---
 
@@ -166,10 +166,10 @@ No servers. No databases. No Docker. No Kubernetes. Fork → `npx wrangler deplo
 
 | Phase | What | API Calls | Latency |
 |---|---|---|---|
-| **Phase 1** — Data Collection | Finnhub financials, Reddit sentiment, SEC filings, technicals, peers, earnings, insider trades | 10+ parallel | ~2-3s |
-| **Phase 2** — Compute | Investment score, Nipun Score™, financial health, momentum, valuation models, risk-reward, dividends, extended technicals | **Zero** | ~5ms |
-| **Phase 3** — AI Synthesis | Report generation + premium insights (scenario analysis, moat, SWOT, thesis) | 2 parallel Gemini calls | ~3-5s |
-| **Phase 4** — Second Opinions | Cerebras contrarian analysis + Cohere fact audit | 2 parallel (non-fatal) | ~1-2s |
+| **Phase 1** - Data Collection | Finnhub financials, Reddit sentiment, SEC filings, technicals, peers, earnings, insider trades | 10+ parallel | ~2-3s |
+| **Phase 2** - Compute | Investment score, Nipun Score™, financial health, momentum, valuation models, risk-reward, dividends, extended technicals | **Zero** | ~5ms |
+| **Phase 3** - AI Synthesis | Report generation + premium insights (scenario analysis, moat, SWOT, thesis) | 2 parallel Gemini calls | ~3-5s |
+| **Phase 4** - Second Opinions | Cerebras contrarian analysis + Cohere fact audit | 2 parallel (non-fatal) | ~1-2s |
 
 **Total: ~6-10 seconds** for 55+ data dimensions across 5 AI models. Bloomberg takes longer.
 
@@ -283,7 +283,7 @@ Nipun-AI/
 
 ## 🚀 Deployment
 
-### Cloudflare (Recommended — Free)
+### Cloudflare (Recommended - Free)
 
 **Worker:**
 ```bash
@@ -339,20 +339,22 @@ See [SECURITY.md](SECURITY.md) for the complete security architecture.
 
 ## 🤝 Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions, bug reports, and feature requests are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+Found a bug? [Open an issue](https://github.com/myProjectsRavi/Nipun-AI/issues/new).
 
 ---
 
 ## 📄 License
 
-MIT — use it, fork it, deploy it, profit from it. Just star the repo. ⭐
+MIT - use it, fork it, deploy it, profit from it. Just star the repo. ⭐
 
 ---
 
 ## ⚠️ Disclaimer
 
-Nipun AI is an educational and informational tool. It is **not financial advice**. Always conduct your own research and consult with a qualified financial advisor before making investment decisions. AI-generated analysis may contain errors or speculative statements — that's why the Fact Audit feature exists.
+Nipun AI is an educational and informational tool. It is **not financial advice**. Always conduct your own research and consult with a qualified financial advisor before making investment decisions. AI-generated analysis may contain errors or speculative statements.
 
 ---
 
-**Built with conviction by Nipun AI contributors. Smart. Secure. Stateless. Supreme.**
+**Built with ❤️ by [RTN Labs](https://rtn-labs.vercel.app). Smart. Secure. Stateless. Supreme.**

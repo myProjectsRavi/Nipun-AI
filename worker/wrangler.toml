@@ -10,7 +10,7 @@ ENVIRONMENT = "production"
 # Self-hosters: leave as "false" for full BYOK functionality.
 DEMO_ONLY = "false"
 
-# CORS: allowed origins (comma-separated). Update after deploying Pages.
-# The worker reads this at runtime to set Access-Control-Allow-Origin.
-# Note: *.nipun-ai.pages.dev preview URLs are handled dynamically via regex in the worker.
-ALLOWED_ORIGINS = "http://localhost:5173,https://nipun-ai.pages.dev"
+# CORS: allowed origins (comma-separated). Self-hosters: update this with your
+# deployed frontend URL. For local development, localhost:5173 is already included.
+# If deploying to Cloudflare Pages, the worker handles *.pages.dev preview URLs dynamically.
+ALLOWED_ORIGINS = "http://localhost:5173"

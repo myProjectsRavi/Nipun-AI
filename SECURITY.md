@@ -80,7 +80,7 @@ Access-Control-Max-Age: 86400            # CORS preflight cache (24h)
 ### CORS Policy
 
 - Explicit allowlist via `ALLOWED_ORIGINS` environment variable
-- Dynamic wildcard support for `*.nipun-ai.pages.dev` preview deployments
+- Dynamic wildcard support for preview deployments when self-hosted
 - `X-Nipun-Keys` is explicitly listed in `Access-Control-Allow-Headers`
 
 ---
@@ -118,9 +118,9 @@ Access-Control-Max-Age: 86400            # CORS preflight cache (24h)
 If you discover a security vulnerability, please report it responsibly:
 
 1. **Do not** open a public GitHub issue
-2. Email: `security@nipun.ai` (or use GitHub's private vulnerability reporting)
+2. Use [GitHub's private vulnerability reporting](https://github.com/myProjectsRavi/Nipun-AI/security/advisories/new) (recommended)
 3. Include: description, steps to reproduce, potential impact
-4. We will respond within 48 hours and credit you in the fix
+4. Confirmed vulnerabilities will be credited in the fix
 
 ---
 

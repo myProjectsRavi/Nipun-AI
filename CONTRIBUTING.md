@@ -49,7 +49,7 @@ git checkout -b feat/your-feature-name
 2. **Zero dependencies (where possible)** — Prefer Web APIs over npm packages. Every dependency is a liability.
 3. **Graceful degradation** — Every external API call must have a try/catch with a mock data fallback.
 4. **Phase separation** — Data fetching, computation, AI synthesis, and secondary AI are separate phases. Don't mix them.
-5. **Type safety** — All interfaces must be defined in `worker/src/types.ts` (source of truth).
+5. **Type safety** - All interfaces must be defined in `shared/types.ts` (single source of truth).
 
 ### Commit Messages
 
