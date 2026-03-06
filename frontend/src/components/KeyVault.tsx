@@ -202,26 +202,41 @@ export default function KeyVault() {
                         </div>
                     </button>
 
-                    <button
-                        onClick={() => setStep('enter-keys')}
-                        className="card group w-full cursor-pointer p-6 text-left"
-                        id="enter-keys-btn"
-                    >
-                        <div className="flex items-center gap-4">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald/10 text-xl transition-transform group-hover:scale-110">
-                                🔑
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="mb-1 font-semibold text-white">Enter API Keys</h3>
-                                <p className="text-sm text-white/40">
-                                    Connect your own free-tier API keys for live analysis
-                                </p>
-                            </div>
-                            <svg className="h-5 w-5 text-white/30 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
+                    {import.meta.env.VITE_DEMO_ONLY === 'true' ? (
+                        <div className="card p-5 text-center space-y-2 border border-accent/20">
+                            <p className="text-sm text-white/60">This hosted instance is <span className="text-accent font-semibold">demo-only</span>.</p>
+                            <p className="text-xs text-white/40">For live data with your own free API keys,</p>
+                            <a
+                                href="https://github.com/myProjectsRavi/Nipun-AI"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-block text-xs font-bold text-accent underline hover:text-accent/80 transition-colors"
+                            >
+                                🚀 Deploy your own instance → free, 5 minutes
+                            </a>
                         </div>
-                    </button>
+                    ) : (
+                        <button
+                            onClick={() => setStep('enter-keys')}
+                            className="card group w-full cursor-pointer p-6 text-left"
+                            id="enter-keys-btn"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald/10 text-xl transition-transform group-hover:scale-110">
+                                    🔑
+                                </div>
+                                <div className="flex-1">
+                                    <h3 className="mb-1 font-semibold text-white">Enter API Keys</h3>
+                                    <p className="text-sm text-white/40">
+                                        Connect your own free-tier API keys for live analysis
+                                    </p>
+                                </div>
+                                <svg className="h-5 w-5 text-white/30 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        </button>
+                    )}
 
                     {demoMode && (
                         <p className="text-center text-xs text-accent/60">

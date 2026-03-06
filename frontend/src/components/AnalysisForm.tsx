@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useStore } from '../store';
 
-const POPULAR_TICKERS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'RELIANCE.NS'];
+const POPULAR_TICKERS = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA', 'NVDA', 'META', 'RELIANCE'];
 
 export default function AnalysisForm() {
     const { ticker, setTicker, isAnalyzing, analysisPhase, error, demoMode, runAnalysis } = useStore();
