@@ -587,26 +587,27 @@ export default function PDFExport() {
 
 
         // ── Final Disclaimer ──────────────────────────────────────
-        checkPageBreak(20);
-        y += 5;
-        doc.setDrawColor(245, 158, 11);
-        doc.setLineWidth(0.3);
-        doc.rect(margin, y, contentWidth, 15);
-        doc.setFillColor(255, 252, 240);
-        doc.rect(margin, y, contentWidth, 15, 'F');
-        y += 4;
-        doc.setFontSize(7);
-        doc.setTextColor(180, 140, 0);
-        doc.setFont('helvetica', 'bold');
-        doc.text('DISCLAIMER:', margin + 3, y);
-        y += 3;
+        checkPageBreak(30);
+        y += 6;
+
+        // Full state reset — previous sections may leave bold/colored font state
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(7);
-        const disclaimerLines = doc.splitTextToSize(
-            'This is not financial advice. This report is for educational and informational purposes only. Always conduct your own research and consult with a qualified financial advisor before making investment decisions.',
-            contentWidth - 6
-        );
-        doc.text(disclaimerLines, margin + 3, y);
+        doc.setTextColor(0, 0, 0);
+
+        const disclaimerText = 'DISCLAIMER: This is not financial advice. This report is for educational and informational purposes only. Always conduct your own research and consult with a qualified financial advisor before making investment decisions.';
+        const disclaimerLines = doc.splitTextToSize(disclaimerText, contentWidth - 8);
+        const boxHeight = Math.max(14, disclaimerLines.length * 4 + 6);
+
+        doc.setDrawColor(245, 158, 11);
+        doc.setLineWidth(0.3);
+        doc.setFillColor(255, 252, 240);
+        doc.rect(margin, y, contentWidth, boxHeight, 'FD');
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(140, 100, 0);
+        doc.text(disclaimerLines, margin + 4, y + 5);
 
         // Save
         doc.save(`NipunAI_${result.ticker}_${new Date().toISOString().split('T')[0]}.pdf`);
