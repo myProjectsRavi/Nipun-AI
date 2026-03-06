@@ -452,4 +452,6 @@ export interface AnalysisResponse {
     audit: AuditResult | null;
     disclaimer: string;
     isDemo: boolean;
+    /** Present when hosted instance is in demo-only mode and user supplied API keys */
+    hostedDemoNotice?: string;
 }

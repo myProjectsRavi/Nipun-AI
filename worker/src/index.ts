@@ -119,8 +119,12 @@ export default {
                     }
                 }
 
+                // Check if hosted instance is demo-only (set DEMO_ONLY=true in YOUR Cloudflare dashboard)
+                const forceDemoOnly = env.DEMO_ONLY === 'true';
+
                 // Check if we should use demo mode (any required key missing = demo)
                 const isDemo =
+                    forceDemoOnly ||
                     !keys ||
                     !keys.finnhub ||
                     !keys.groq ||
@@ -131,6 +135,10 @@ export default {
 
                 if (isDemo) {
                     result = buildDemoResponse(upperTicker);
+                    if (forceDemoOnly && keys && keys.finnhub) {
+                        // User supplied keys but we're in demo-only mode — tell them to self-host
+                        result.hostedDemoNotice = '🏠 This hosted instance runs in demo mode only to keep it free. For live data, deploy your own instance in 5 minutes — it\'s free! See github.com/myProjectsRavi/Nipun-AI';
+                    }
                 } else {
                     result = await buildLiveResponse(upperTicker, keys!);
                 }

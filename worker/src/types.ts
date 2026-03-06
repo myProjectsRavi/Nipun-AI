@@ -9,4 +9,6 @@ export * from '../../shared/types';
 export interface Env {
     ENVIRONMENT: string;
     ALLOWED_ORIGINS: string;
+    /** Set to 'true' in YOUR Cloudflare dashboard to force demo-only mode on hosted instance */
+    DEMO_ONLY?: string;
 }

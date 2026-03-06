@@ -1,18 +1,18 @@
 # 🧠 Nipun AI — The Open-Source Bloomberg Alternative
 
-[![GitHub Stars](https://img.shields.io/github/stars/yourusername/Nipun-AI?style=for-the-badge&color=ffd700)](https://github.com/yourusername/Nipun-AI)
+[![GitHub Stars](https://img.shields.io/github/stars/myProjectsRavi/Nipun-AI?style=for-the-badge&color=ffd700)](https://github.com/myProjectsRavi/Nipun-AI)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 [![Infrastructure: Cloudflare Workers](https://img.shields.io/badge/Infra-Cloudflare_Workers-orange?style=for-the-badge&logo=cloudflare)](https://workers.cloudflare.com/)
 [![Security: AES-256-GCM](https://img.shields.io/badge/Security-AES--256--GCM-red?style=for-the-badge)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
-[![Zero Cost](https://img.shields.io/badge/Cost-$0%2Fmonth-brightgreen?style=for-the-badge)](https://github.com/yourusername/Nipun-AI)
-[![CI](https://img.shields.io/github/actions/workflow/status/yourusername/Nipun-AI/ci.yml?label=CI&style=for-the-badge)](https://github.com/yourusername/Nipun-AI/actions)
-[![Tests](https://img.shields.io/badge/Tests-74%20passing-brightgreen?style=for-the-badge)](https://github.com/yourusername/Nipun-AI)
+[![Zero Cost](https://img.shields.io/badge/Cost-$0%2Fmonth-brightgreen?style=for-the-badge)](https://github.com/myProjectsRavi/Nipun-AI)
+[![CI](https://img.shields.io/github/actions/workflow/status/myProjectsRavi/Nipun-AI/ci.yml?label=CI&style=for-the-badge)](https://github.com/myProjectsRavi/Nipun-AI/actions)
+[![Tests](https://img.shields.io/badge/Tests-74%20passing-brightgreen?style=for-the-badge)](https://github.com/myProjectsRavi/Nipun-AI)
 
 ### 🚀 One-Click Deploy
 
 | Component | Deploy |
 |-----------|--------|
-| **Worker** (API) | [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/yourusername/Nipun-AI&authed=true&fields={"ALLOWED_ORIGINS":"*","ENVIRONMENT":"production"}&resourceType=workers&deploy-source=dir:worker) |
+| **Worker** (API) | [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/myProjectsRavi/Nipun-AI&authed=true&fields={"ALLOWED_ORIGINS":"*","ENVIRONMENT":"production"}&resourceType=workers&deploy-source=dir:worker) |
 | **Frontend** (UI) | [![Deploy to Cloudflare Pages](https://img.shields.io/badge/Deploy-Cloudflare%20Pages-orange?style=for-the-badge&logo=cloudflare)](https://dash.cloudflare.com/?to=/:account/pages/new/provider/github) |
 
 > **55+ data dimensions · 5 AI models · 3 valuation methods · Zero infrastructure — the institutional-grade financial analysis platform that costs $0/month.**
@@ -21,22 +21,59 @@ Bloomberg charges $24,000/year. Nipun AI delivers comparable depth for **free** 
 
 ---
 
-## ⚡ Quick Start (3 Steps)
+## ⚡ Quick Start
+
+### 🟢 Non-Technical Users (2 Minutes, One-Time Setup)
+
+You only need [Node.js](https://nodejs.org) (free, one-click install) and [Git](https://git-scm.com) installed.
+
+**macOS / Linux:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/myProjectsRavi/Nipun-AI/main/setup.sh | bash
+```
+
+**Windows:**
+1. [Download the repo](https://github.com/myProjectsRavi/Nipun-AI/archive/refs/heads/main.zip) and extract it
+2. Double-click `setup.bat`
+
+That's it — the app opens in your browser. Click **Demo Mode** to try instantly, or enter free API keys for live data.
+
+> **Already set up?** Next time, just run `./setup.sh` (or `setup.bat` on Windows) from the Nipun-AI folder.
+
+---
+
+### 🔧 Developers (3 Steps)
 
 ```bash
 # 1. Clone
-git clone https://github.com/yourusername/Nipun-AI.git && cd Nipun-AI
+git clone https://github.com/myProjectsRavi/Nipun-AI.git && cd Nipun-AI
 
-# 2. Deploy the Worker (serverless backend)
-cd worker && npm install && npx wrangler deploy
+# 2. Start the Worker (serverless backend)
+cd worker && npm install && npx wrangler dev
 
-# 3. Launch the Frontend
-cd ../frontend && npm install && npm run dev
+# 3. Start the Frontend (in another terminal)
+cd frontend && npm install && npm run dev
 ```
 
 Open `http://localhost:5173` → Enter API keys → Analyze any US stock ticker.
 
 > **No API keys?** Try **Demo Mode** — full analysis with realistic mock data, zero setup required.
+
+---
+
+## ☕ Support
+
+Nipun AI is free, open-source, and always will be. If it's useful to you, a coffee is appreciated — never expected.
+
+<p align="center">
+  <a href="https://www.paypal.com/paypalme/rtnlabs"><img src="https://img.shields.io/badge/Donate-PayPal-blue?style=for-the-badge&logo=paypal" alt="PayPal" /></a>&nbsp;
+  <a href="https://rtnlabs.lemonsqueezy.com/checkout/buy/1be9bcd1-5f3e-4c50-906e-deb661fcf64d"><img src="https://img.shields.io/badge/Support-Lemon_Squeezy-fbbf24?style=for-the-badge" alt="Lemon Squeezy" /></a>&nbsp;
+  <a href="https://github.com/sponsors/myProjectsRavi"><img src="https://img.shields.io/badge/❤️_Sponsor-GitHub-ea4aaa?style=for-the-badge&logo=github" alt="GitHub Sponsors" /></a>
+</p>
+
+<p align="center"><em>Donations are a voluntary thank-you for existing work — not a support contract.</em></p>
+
+> **🌐 Live Demo**: [nipun-ai.pages.dev](https://nipun-ai.pages.dev) runs in **demo mode** (mock data) to keep it free. For live data with your own API keys, deploy your own instance using the One-Click Deploy buttons above — it takes 5 minutes and costs $0/month.
 
 ---
 
@@ -206,6 +243,8 @@ Every analysis produces a comprehensive report with:
 
 ```
 Nipun-AI/
+├── setup.sh                  # One-command setup (macOS/Linux)
+├── setup.bat                 # One-command setup (Windows)
 ├── frontend/                 # React SPA (Cloudflare Pages)
 │   └── src/
 │       ├── App.tsx           # Landing page, nav, routing
@@ -231,6 +270,10 @@ Nipun-AI/
 │       ├── edgar.ts          # SEC EDGAR filings
 │       ├── rss.ts            # Reddit + Yahoo RSS feeds
 │       └── mock.ts           # Ticker-aware demo data
+├── shared/
+│   └── types.ts              # Single source of truth (450+ LOC)
+├── .github/
+│   └── workflows/ci.yml      # Lint + typecheck + tests on every PR
 ├── README.md
 ├── SECURITY.md
 └── CONTRIBUTING.md
@@ -261,6 +304,13 @@ npx wrangler pages deploy dist
 
 ### Local Development
 
+**Quickest way** (runs both services):
+```bash
+./setup.sh        # macOS/Linux
+setup.bat         # Windows
+```
+
+**Manual** (two terminals):
 ```bash
 # Terminal 1: Worker
 cd worker && npm install && npx wrangler dev

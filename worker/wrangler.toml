@@ -6,6 +6,9 @@ compatibility_date = "2024-12-01"
 # server-side defaults. Otherwise, keys are sent per-request via BYOK.
 [vars]
 ENVIRONMENT = "production"
+# Set to "true" in your Cloudflare dashboard to force demo-only mode.
+# Self-hosters: leave as "false" for full BYOK functionality.
+DEMO_ONLY = "false"
 
 # CORS: allowed origins (comma-separated). Update after deploying Pages.
 # The worker reads this at runtime to set Access-Control-Allow-Origin.

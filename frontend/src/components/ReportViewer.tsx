@@ -40,6 +40,21 @@ export default function ReportViewer() {
                 <PDFExport />
             </div>
 
+            {/* Demo-only hosted instance notice */}
+            {result.hostedDemoNotice && (
+                <div className="mb-4 rounded-xl border border-sky/30 bg-sky/10 px-5 py-3 text-sm text-sky" id="hosted-demo-notice">
+                    <p className="font-semibold">🏠 {result.hostedDemoNotice}</p>
+                    <a
+                        href="https://github.com/myProjectsRavi/Nipun-AI"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1 inline-block font-bold text-white underline hover:text-sky-light"
+                    >
+                        → Deploy your own (free, 5 minutes)
+                    </a>
+                </div>
+            )}
+
             <ScoreCards result={result} />
             <HealthScenarioCards result={result} />
             <MarketDataCards result={result} />

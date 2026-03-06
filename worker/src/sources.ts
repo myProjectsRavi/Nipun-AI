@@ -59,13 +59,13 @@ export function buildResearchSources(
             { label: `Yahoo Finance — Financials`, url: `https://finance.yahoo.com/quote/${t}/financials` },
             { label: `Yahoo Finance — Balance Sheet`, url: `https://finance.yahoo.com/quote/${t}/balance-sheet` },
             { label: `Yahoo Finance — Cash Flow`, url: `https://finance.yahoo.com/quote/${t}/cash-flow` },
-            { label: `Macrotrends — Revenue`, url: `https://www.macrotrends.net/stocks/charts/${t}/${tLower}/revenue` },
-            { label: `Macrotrends — Income Statement`, url: `https://www.macrotrends.net/stocks/charts/${t}/${tLower}/income-statement` },
-            { label: `Macrotrends — Balance Sheet`, url: `https://www.macrotrends.net/stocks/charts/${t}/${tLower}/balance-sheet` },
+            { label: `Macrotrends — Revenue`, url: `https://www.macrotrends.net/stocks/charts/${t}/${t}/revenue` },
+            { label: `Macrotrends — Income Statement`, url: `https://www.macrotrends.net/stocks/charts/${t}/${t}/income-statement` },
+            { label: `Macrotrends — Balance Sheet`, url: `https://www.macrotrends.net/stocks/charts/${t}/${t}/balance-sheet` },
         ],
 
         companyResearch: [
-            { label: `Google Finance — ${t}`, url: `https://www.google.com/finance/quote/${t}:NASDAQ` },
+            { label: `Google Finance — ${t}`, url: `https://www.google.com/finance/quote/${t}` },
             { label: `Yahoo Finance — ${t}`, url: `https://finance.yahoo.com/quote/${t}` },
             { label: `MarketWatch — ${t}`, url: `https://www.marketwatch.com/investing/stock/${tLower}` },
             { label: `Wikipedia — ${t}`, url: `https://en.wikipedia.org/wiki/Special:Search?search=${t}+company` },
@@ -84,7 +84,7 @@ export function buildResearchSources(
             { label: `Finnhub Price Targets`, url: `https://finnhub.io/api/v1/stock/price-target?symbol=${t}` },
             { label: `Finnhub Institutional Ownership`, url: `https://finnhub.io/api/v1/institutional-ownership?symbol=${t}` },
             { label: `TipRanks — ${t}`, url: `https://www.tipranks.com/stocks/${tLower}` },
-            { label: `Simply Wall St — ${t}`, url: `https://simplywall.st/stocks/us/tech/nasdaq-${tLower}` },
+            { label: `Simply Wall St — ${t}`, url: `https://simplywall.st/stocks/search?q=${t}` },
         ],
 
         valuationReferences: [
