@@ -22,22 +22,76 @@ Bloomberg charges $24,000/year. Nipun AI delivers comparable depth for **free** 
 
 ## ⚡ Quick Start
 
-### 🟢 Non-Technical Users (2 Minutes, One-Time Setup)
+### 🟢 Non-Technical Users — Step-by-Step Setup
 
-You only need [Node.js](https://nodejs.org) (free, one-click install) and [Git](https://git-scm.com) installed.
+Choose your operating system and paste each command into your terminal. You only need to do this **once**.
 
-**macOS / Linux:**
+---
+
+#### 🍎 macOS
+
+**Step 1 — Open Terminal**
+Press `Cmd ⌘ + Space`, type **Terminal**, press Enter.
+
+**Step 2 — Install Homebrew** (Mac's package manager — skip if already installed)
 ```bash
-curl -fsSL https://raw.githubusercontent.com/myProjectsRavi/Nipun-AI/main/setup.sh | bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-**Windows:**
-1. [Download the repo](https://github.com/myProjectsRavi/Nipun-AI/archive/refs/heads/main.zip) and extract it
-2. Double-click `setup.bat`
+**Step 3 — Install Node.js and Git**
+```bash
+brew install node git
+```
 
-That's it - the app opens in your browser. Click **Demo Mode** to try instantly, or enter free API keys for live data.
+**Step 4 — Clone and launch Nipun AI**
+```bash
+git clone https://github.com/myProjectsRavi/Nipun-AI.git && cd Nipun-AI && bash setup.sh
+```
 
-> **Already set up?** Next time, just run `./setup.sh` (or `setup.bat` on Windows) from the Nipun-AI folder.
+---
+
+#### 🪟 Windows
+
+**Step 1 — Open PowerShell as Administrator**
+Press `Win + S`, search **PowerShell**, right-click → **Run as Administrator**.
+
+**Step 2 — Install Chocolatey** (Windows package manager — skip if already installed)
+```powershell
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+```
+
+**Step 3 — Install Node.js and Git** (close and reopen PowerShell after Step 2)
+```powershell
+choco install nodejs git -y
+```
+
+**Step 4 — Clone and launch Nipun AI**
+```powershell
+git clone https://github.com/myProjectsRavi/Nipun-AI.git; cd Nipun-AI; .\setup.bat
+```
+
+---
+
+#### 🐧 Linux (Ubuntu / Debian)
+
+**Step 1 — Open Terminal** (`Ctrl + Alt + T`)
+
+**Step 2 — Install Node.js and Git**
+```bash
+sudo apt update && sudo apt install -y nodejs npm git
+```
+
+**Step 3 — Clone and launch Nipun AI**
+```bash
+git clone https://github.com/myProjectsRavi/Nipun-AI.git && cd Nipun-AI && bash setup.sh
+```
+
+---
+
+The browser opens automatically. Click **Demo Mode** to explore instantly — no API keys needed.
+
+> **Already set up?** Next time, just run `bash setup.sh` (or `setup.bat` on Windows) from the `Nipun-AI` folder.
+
 
 ---
 
