@@ -2,6 +2,12 @@ import { useCallback } from 'react';
 import { jsPDF } from 'jspdf';
 import { useStore } from '../store';
 
+/** Safe number: returns 0 for null/undefined/NaN to prevent .toFixed() crashes */
+function safe(n: number | null | undefined): number {
+    if (n == null || isNaN(n) || !isFinite(n)) return 0;
+    return n;
+}
+
 export default function PDFExport() {
     const { result } = useStore();
 
@@ -79,12 +85,12 @@ export default function PDFExport() {
         addSection('Financial Overview');
 
         const financialRows = [
-            ['Price', `$${result.financials.price.toFixed(2)}`, 'P/E Ratio', result.financials.pe.toFixed(2)],
-            ['Change', `${result.financials.change > 0 ? '+' : ''}${result.financials.change.toFixed(2)} (${result.financials.changePercent.toFixed(2)}%)`, 'EPS', `$${result.financials.eps.toFixed(2)}`],
-            ['Market Cap', formatNum(result.financials.marketCap), 'Beta', result.financials.beta.toFixed(2)],
-            ['52W High', `$${result.financials.weekHigh52.toFixed(2)}`, '52W Low', `$${result.financials.weekLow52.toFixed(2)}`],
-            ['Gross Margin', `${result.financials.grossMargin.toFixed(2)}%`, 'Debt/Equity', result.financials.debtToEquity.toFixed(2)],
-            ['Revenue', formatNum(result.financials.revenue), 'Div Yield', `${result.financials.dividendYield.toFixed(2)}%`],
+            ['Price', `$${safe(result.financials.price).toFixed(2)}`, 'P/E Ratio', safe(result.financials.pe).toFixed(2)],
+            ['Change', `${safe(result.financials.change) > 0 ? '+' : ''}${safe(result.financials.change).toFixed(2)} (${safe(result.financials.changePercent).toFixed(2)}%)`, 'EPS', `$${safe(result.financials.eps).toFixed(2)}`],
+            ['Market Cap', formatNum(safe(result.financials.marketCap)), 'Beta', safe(result.financials.beta).toFixed(2)],
+            ['52W High', `$${safe(result.financials.weekHigh52).toFixed(2)}`, '52W Low', `$${safe(result.financials.weekLow52).toFixed(2)}`],
+            ['Gross Margin', `${safe(result.financials.grossMargin).toFixed(2)}%`, 'Debt/Equity', safe(result.financials.debtToEquity).toFixed(2)],
+            ['Revenue', formatNum(safe(result.financials.revenue)), 'Div Yield', `${safe(result.financials.dividendYield).toFixed(2)}%`],
         ];
 
         doc.setFontSize(9);
@@ -249,6 +255,334 @@ export default function PDFExport() {
                 doc.text(claimLines, margin + 5, y);
                 y += claimLines.length * 4 + 3;
             }
+        }
+
+        // ── Nipun Score™ ──────────────────────────────────────────
+        if (result.nipunScore) {
+            addSection('Nipun Score™');
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(14, 165, 233);
+            doc.text(`Grade: ${result.nipunScore.grade} (${safe(result.nipunScore.numericScore)}/100)`, margin, y);
+            y += 7;
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(60, 60, 60);
+            doc.text(`Confidence: ${result.nipunScore.confidence}%`, margin, y);
+            y += 5;
+            const verdictLines = doc.splitTextToSize(result.nipunScore.verdict, contentWidth);
+            doc.text(verdictLines, margin, y);
+            y += verdictLines.length * 4 + 3;
+
+            if (result.nipunScore.strengths.length > 0) {
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(16, 185, 129);
+                doc.text('Strengths:', margin, y);
+                y += 5;
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(60, 60, 60);
+                for (const s of result.nipunScore.strengths) {
+                    checkPageBreak(6);
+                    doc.text(`+ ${s}`, margin + 3, y);
+                    y += 5;
+                }
+            }
+            if (result.nipunScore.weaknesses.length > 0) {
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(239, 68, 68);
+                doc.text('Weaknesses:', margin, y);
+                y += 5;
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(60, 60, 60);
+                for (const w of result.nipunScore.weaknesses) {
+                    checkPageBreak(6);
+                    doc.text(`- ${w}`, margin + 3, y);
+                    y += 5;
+                }
+            }
+            y += 3;
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(14, 165, 233);
+            doc.text('Recommendation:', margin, y);
+            y += 5;
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(60, 60, 60);
+            const recLines = doc.splitTextToSize(result.nipunScore.recommendation, contentWidth);
+            doc.text(recLines, margin, y);
+            y += recLines.length * 4 + 4;
+        }
+
+        // ── Investment Score ──────────────────────────────────────
+        if (result.investmentScore) {
+            addSection('Investment Score');
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text(`${result.investmentScore.overall}/100 — ${result.investmentScore.signal}`, margin, y);
+            y += 7;
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(60, 60, 60);
+            const scores = result.investmentScore.breakdown;
+            const scoreRows = [
+                ['Fundamentals', `${scores.fundamentalScore}/100`, 'Technicals', `${scores.technicalScore}/100`],
+                ['Sentiment', `${scores.sentimentScore}/100`, 'Risk', `${scores.riskScore}/100`],
+                ['Insider Signal', `${scores.insiderScore}/100`, '', ''],
+            ];
+            for (const row of scoreRows) {
+                checkPageBreak(6);
+                doc.text(row[0], margin, y);
+                doc.setFont('helvetica', 'bold');
+                doc.text(row[1], margin + 30, y);
+                doc.setFont('helvetica', 'normal');
+                if (row[2]) {
+                    doc.text(row[2], margin + contentWidth / 2, y);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(row[3], margin + contentWidth / 2 + 30, y);
+                    doc.setFont('helvetica', 'normal');
+                }
+                y += 5;
+            }
+            y += 3;
+        }
+
+        // ── Scenario Analysis ─────────────────────────────────────
+        if (result.scenarioAnalysis) {
+            addSection('Scenario Analysis');
+            doc.setFontSize(9);
+            for (const sc of [result.scenarioAnalysis.bull, result.scenarioAnalysis.base, result.scenarioAnalysis.bear]) {
+                checkPageBreak(14);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(sc.label === 'Bull Case' ? 16 : sc.label === 'Bear Case' ? 239 : 100,
+                    sc.label === 'Bull Case' ? 185 : sc.label === 'Bear Case' ? 68 : 100,
+                    sc.label === 'Bull Case' ? 129 : sc.label === 'Bear Case' ? 68 : 100);
+                doc.text(`${sc.label}: $${safe(sc.price).toFixed(0)} (${safe(sc.upside) > 0 ? '+' : ''}${safe(sc.upside).toFixed(1)}%) — ${sc.probability}% probability`, margin, y);
+                y += 4;
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(60, 60, 60);
+                const ratLines = doc.splitTextToSize(sc.rationale, contentWidth);
+                doc.text(ratLines, margin, y);
+                y += ratLines.length * 4 + 3;
+            }
+        }
+
+        // ── Financial Health ──────────────────────────────────────
+        if (result.financialHealth) {
+            addSection('Financial Health');
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(60, 60, 60);
+            const healthRows = [
+                ['Altman Z-Score', `${safe(result.financialHealth.altmanZScore).toFixed(2)} (${result.financialHealth.altmanZone})`],
+                ['Piotroski F-Score', `${result.financialHealth.piotroskiFScore}/9 (${result.financialHealth.piotroskiRating})`],
+                ['Current Ratio', safe(result.financialHealth.currentRatio).toFixed(2)],
+                ['Quick Ratio', safe(result.financialHealth.quickRatio).toFixed(2)],
+                ['Interest Coverage', `${safe(result.financialHealth.interestCoverage).toFixed(1)}x`],
+                ['52W Position', `${safe(result.financialHealth.pricePositionPercent).toFixed(0)}%`],
+                ['Volatility', result.financialHealth.volatilityCategory],
+            ];
+            for (const [label, value] of healthRows) {
+                checkPageBreak(6);
+                doc.text(label, margin, y);
+                doc.setFont('helvetica', 'bold');
+                doc.text(value, margin + 40, y);
+                doc.setFont('helvetica', 'normal');
+                y += 5;
+            }
+            y += 2;
+        }
+
+        // ── Valuation Models ──────────────────────────────────────
+        if (result.valuationModels) {
+            addSection('Valuation Models');
+            doc.setFontSize(9);
+            for (const [name, model] of [['DCF', result.valuationModels.dcf], ['Graham Number', result.valuationModels.graham], ['Peter Lynch', result.valuationModels.lynch]] as const) {
+                checkPageBreak(10);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(0, 0, 0);
+                doc.text(`${name}: $${safe(model.value).toFixed(0)} (${safe(model.upside) > 0 ? '+' : ''}${safe(model.upside).toFixed(1)}%)`, margin, y);
+                y += 4;
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(100, 100, 100);
+                doc.text(model.methodology, margin, y);
+                y += 5;
+            }
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(14, 165, 233);
+            doc.text(`Consensus Fair Value: $${safe(result.valuationModels.consensus.value).toFixed(0)} (${safe(result.valuationModels.consensus.upside) > 0 ? '+' : ''}${safe(result.valuationModels.consensus.upside).toFixed(1)}%)`, margin, y);
+            y += 6;
+        }
+
+        // ── Competitive Moat ──────────────────────────────────────
+        if (result.competitiveMoat) {
+            addSection('Competitive Moat');
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Rating: ${result.competitiveMoat.rating} (${result.competitiveMoat.score}/100) — Durability: ${result.competitiveMoat.durability}`, margin, y);
+            y += 6;
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(60, 60, 60);
+            for (const src of result.competitiveMoat.sources) {
+                checkPageBreak(8);
+                doc.text(`• ${src.name} (${src.strength}): ${src.description}`, margin, y);
+                y += 5;
+            }
+            y += 3;
+        }
+
+        // ── SWOT Analysis ─────────────────────────────────────────
+        if (result.swotAnalysis) {
+            addSection('SWOT Analysis');
+            doc.setFontSize(9);
+            for (const [label, items, color] of [
+                ['Strengths', result.swotAnalysis.strengths, [16, 185, 129]],
+                ['Weaknesses', result.swotAnalysis.weaknesses, [239, 68, 68]],
+                ['Opportunities', result.swotAnalysis.opportunities, [56, 189, 248]],
+                ['Threats', result.swotAnalysis.threats, [245, 158, 11]],
+            ] as const) {
+                checkPageBreak(8);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(color[0], color[1], color[2]);
+                doc.text(`${label}:`, margin, y);
+                y += 5;
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(60, 60, 60);
+                for (const item of items.slice(0, 3)) {
+                    checkPageBreak(6);
+                    const itemLines = doc.splitTextToSize(`• ${item}`, contentWidth - 5);
+                    doc.text(itemLines, margin + 3, y);
+                    y += itemLines.length * 4 + 2;
+                }
+            }
+        }
+
+        // ── Investment Thesis ─────────────────────────────────────
+        if (result.investmentThesis) {
+            addSection('Investment Thesis');
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(60, 60, 60);
+            const summLines = doc.splitTextToSize(result.investmentThesis.summary, contentWidth);
+            doc.text(summLines, margin, y);
+            y += summLines.length * 4 + 4;
+
+            checkPageBreak(16);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(16, 185, 129);
+            doc.text('Bull Case:', margin, y);
+            y += 5;
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(60, 60, 60);
+            const bullLines = doc.splitTextToSize(result.investmentThesis.bullCase, contentWidth);
+            doc.text(bullLines, margin, y);
+            y += bullLines.length * 4 + 4;
+
+            checkPageBreak(16);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(239, 68, 68);
+            doc.text('Bear Case:', margin, y);
+            y += 5;
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(60, 60, 60);
+            const bearLines = doc.splitTextToSize(result.investmentThesis.bearCase, contentWidth);
+            doc.text(bearLines, margin, y);
+            y += bearLines.length * 4 + 4;
+        }
+
+        // ── Momentum & Risk-Reward ────────────────────────────────
+        if (result.momentum) {
+            addSection('Momentum Score');
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Score: ${result.momentum.score}/100 — Trend: ${result.momentum.trend}`, margin, y);
+            y += 5;
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(60, 60, 60);
+            doc.text(`7D: ${result.momentum.shortTerm.performance > 0 ? '+' : ''}${result.momentum.shortTerm.performance}% | 30D: ${result.momentum.mediumTerm.performance > 0 ? '+' : ''}${result.momentum.mediumTerm.performance}% | 90D: ${result.momentum.longTerm.performance > 0 ? '+' : ''}${result.momentum.longTerm.performance}%`, margin, y);
+            y += 6;
+        }
+
+        if (result.riskReward) {
+            addSection('Risk-Reward Profile');
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Ratio: ${safe(result.riskReward.ratio).toFixed(1)}:1 — Rating: ${result.riskReward.rating}`, margin, y);
+            y += 5;
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(60, 60, 60);
+            doc.text(`Max Downside: -${result.riskReward.maxDrawdownEstimate}% | Upside: +${result.riskReward.upsidePotential}%`, margin, y);
+            y += 6;
+        }
+
+        // ── Dividend Analysis ─────────────────────────────────────
+        if (result.dividendAnalysis && result.dividendAnalysis.yield > 0) {
+            addSection('Dividend Analysis');
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(60, 60, 60);
+            doc.text(`Yield: ${result.dividendAnalysis.yield}% | Annual: $${result.dividendAnalysis.annualDividend} | Payout: ${result.dividendAnalysis.payoutRatio}% | Safety: ${result.dividendAnalysis.safety}`, margin, y);
+            y += 6;
+        }
+
+        // ── Technical Analysis Summary ────────────────────────────
+        if (result.technicals) {
+            addSection('Technical Analysis');
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Overall Signal: ${result.technicals.overallSignal.toUpperCase()}`, margin, y);
+            y += 6;
+            doc.setFont('helvetica', 'normal');
+            for (const sig of [result.technicals.rsi, result.technicals.macd, result.technicals.sma50, result.technicals.sma200]) {
+                checkPageBreak(8);
+                doc.setTextColor(sig.signal === 'bullish' ? 16 : sig.signal === 'bearish' ? 239 : 100,
+                    sig.signal === 'bullish' ? 185 : sig.signal === 'bearish' ? 68 : 100,
+                    sig.signal === 'bullish' ? 129 : sig.signal === 'bearish' ? 68 : 100);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`${sig.name}: ${sig.value} (${sig.signal})`, margin, y);
+                y += 4;
+                doc.setTextColor(60, 60, 60);
+                doc.setFont('helvetica', 'normal');
+                const interpLines = doc.splitTextToSize(sig.interpretation, contentWidth);
+                doc.text(interpLines, margin, y);
+                y += interpLines.length * 4 + 2;
+            }
+        }
+
+        // ── AI Consensus ──────────────────────────────────────────
+        if (result.aiConsensus) {
+            addSection('Multi-AI Consensus');
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Agreement: ${result.aiConsensus.agreementScore}% | Gemini: ${result.aiConsensus.geminiVerdict} | ${result.aiConsensus.secondaryModel}: ${result.aiConsensus.secondaryVerdict}`, margin, y);
+            y += 5;
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(60, 60, 60);
+            const consLines = doc.splitTextToSize(result.aiConsensus.consensusSummary, contentWidth);
+            doc.text(consLines, margin, y);
+            y += consLines.length * 4 + 4;
+        }
+
+        // ── Insider Activity ──────────────────────────────────────
+        if (result.insiderActivity) {
+            addSection('Insider Activity');
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Net Sentiment: ${result.insiderActivity.netSentiment} | Buys: ${formatNum(result.insiderActivity.totalBuyValue)} | Sells: ${formatNum(result.insiderActivity.totalSellValue)}`, margin, y);
+            y += 6;
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(60, 60, 60);
+            for (const t of result.insiderActivity.trades.slice(0, 5)) {
+                checkPageBreak(6);
+                doc.text(`${t.name} (${t.role}) — ${t.transactionType.toUpperCase()} ${formatNum(t.value)} on ${t.date}`, margin, y);
+                y += 5;
+            }
+            y += 2;
         }
 
         // ── Final Disclaimer ──────────────────────────────────────

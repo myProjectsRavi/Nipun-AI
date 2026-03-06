@@ -280,7 +280,7 @@ export default function ReportViewer() {
                             </div>
                             <div className="flex items-center justify-between">
                                 <span className="stat-label">Revenue Growth</span>
-                                <span className="font-mono text-base font-bold text-emerald">+{result.revenueBreakdown.revenueGrowth}%</span>
+                                <span className={`font-mono text-base font-bold ${safe(result.revenueBreakdown.revenueGrowth) >= 0 ? 'text-emerald' : 'text-rose'}`}>{safe(result.revenueBreakdown.revenueGrowth) > 0 ? '+' : ''}{safe(result.revenueBreakdown.revenueGrowth)}%</span>
                             </div>
                         </div>
                         <p className="mt-2 text-base text-white/90 leading-relaxed">{result.revenueBreakdown.summary}</p>
@@ -396,11 +396,11 @@ export default function ReportViewer() {
                         </div>
                         <div className="grid grid-cols-5 gap-1.5 mb-3">
                             {[
-                                { l: 'PEG', v: result.valueGrowth.metrics.pegRatio.toFixed(1) },
-                                { l: 'P/B', v: result.valueGrowth.metrics.priceToBook.toFixed(1) },
-                                { l: 'P/S', v: result.valueGrowth.metrics.priceToSales.toFixed(1) },
-                                { l: 'EPS 5Y', v: `${result.valueGrowth.metrics.epsGrowth5Y}%` },
-                                { l: 'Rev 5Y', v: `${result.valueGrowth.metrics.revenueGrowth5Y}%` },
+                                { l: 'PEG', v: safe(result.valueGrowth?.metrics?.pegRatio).toFixed(1) },
+                                { l: 'P/B', v: safe(result.valueGrowth?.metrics?.priceToBook).toFixed(1) },
+                                { l: 'P/S', v: safe(result.valueGrowth?.metrics?.priceToSales).toFixed(1) },
+                                { l: 'EPS 5Y', v: `${safe(result.valueGrowth?.metrics?.epsGrowth5Y)}%` },
+                                { l: 'Rev 5Y', v: `${safe(result.valueGrowth?.metrics?.revenueGrowth5Y)}%` },
                             ].map(m => (
                                 <div key={m.l} className="rounded-lg bg-white/[0.02] border border-white/[0.04] p-1.5 text-center">
                                     <div className="text-base text-white/80 uppercase">{m.l}</div>
@@ -611,16 +611,16 @@ export default function ReportViewer() {
                                         <td className="py-2 text-right text-sm font-mono text-white/70">{formatN(safe(result.financials.marketCap))}</td>
                                         <td className="py-2 text-right text-sm font-mono text-white/70">{safe(result.financials.pe).toFixed(1)}</td>
                                         <td className="py-2 text-right text-sm font-mono text-white/70">${safe(result.financials.eps).toFixed(2)}</td>
-                                        <td className={`py-2 text-right font-mono font-semibold ${result.financials.changePercent >= 0 ? 'text-emerald' : 'text-rose'}`}>{result.financials.changePercent > 0 ? '+' : ''}{result.financials.changePercent.toFixed(2)}%</td>
+                                        <td className={`py-2 text-right font-mono font-semibold ${safe(result.financials.changePercent) >= 0 ? 'text-emerald' : 'text-rose'}`}>{safe(result.financials.changePercent) > 0 ? '+' : ''}{safe(result.financials.changePercent).toFixed(2)}%</td>
                                     </tr>
                                     {result.peerComparison.peers.map(p => (
                                         <tr key={p.ticker} className="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
                                             <td className="py-2 text-sm font-mono text-white/80">{p.ticker}</td>
-                                            <td className="py-2 text-right text-sm font-mono text-white/70">${p.price.toFixed(2)}</td>
-                                            <td className="py-2 text-right text-sm font-mono text-white/70">{formatN(p.marketCap)}</td>
-                                            <td className="py-2 text-right text-sm font-mono text-white/70">{p.pe > 0 ? p.pe.toFixed(1) : 'N/A'}</td>
-                                            <td className="py-2 text-right text-sm font-mono text-white/70">${p.eps.toFixed(2)}</td>
-                                            <td className={`py-2 text-right font-mono ${p.change >= 0 ? 'text-emerald/50' : 'text-rose/50'}`}>{p.change > 0 ? '+' : ''}{p.change.toFixed(2)}%</td>
+                                            <td className="py-2 text-right text-sm font-mono text-white/70">${safe(p.price).toFixed(2)}</td>
+                                            <td className="py-2 text-right text-sm font-mono text-white/70">{formatN(safe(p.marketCap))}</td>
+                                            <td className="py-2 text-right text-sm font-mono text-white/70">{p.pe > 0 ? safe(p.pe).toFixed(1) : 'N/A'}</td>
+                                            <td className="py-2 text-right text-sm font-mono text-white/70">${safe(p.eps).toFixed(2)}</td>
+                                            <td className={`py-2 text-right font-mono ${safe(p.change) >= 0 ? 'text-emerald/50' : 'text-rose/50'}`}>{safe(p.change) > 0 ? '+' : ''}{safe(p.change).toFixed(2)}%</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -711,15 +711,15 @@ export default function ReportViewer() {
                                 ].map(t => (
                                     <div key={t.l} className={`rounded-xl border ${t.c} p-3 text-center`}>
                                         <div className="stat-label mb-0.5">{t.l}</div>
-                                        <div className="font-mono text-lg font-bold text-white">${t.v.toFixed(0)}</div>
+                                        <div className="font-mono text-lg font-bold text-white">${safe(t.v).toFixed(0)}</div>
                                     </div>
                                 ))}
                             </div>
                             <div className="mb-3">
                                 <div className="flex justify-between mb-1">
-                                    <span className="stat-label">Current: ${result.priceTarget.currentPrice.toFixed(2)}</span>
-                                    <span className={`font-mono text-sm font-bold ${result.priceTarget.upsidePercent >= 0 ? 'text-emerald' : 'text-rose'}`}>
-                                        {result.priceTarget.upsidePercent > 0 ? '+' : ''}{result.priceTarget.upsidePercent.toFixed(1)}% to mean
+                                    <span className="stat-label">Current: ${safe(result.priceTarget.currentPrice).toFixed(2)}</span>
+                                    <span className={`font-mono text-sm font-bold ${safe(result.priceTarget.upsidePercent) >= 0 ? 'text-emerald' : 'text-rose'}`}>
+                                        {safe(result.priceTarget.upsidePercent) > 0 ? '+' : ''}{safe(result.priceTarget.upsidePercent).toFixed(1)}% to mean
                                     </span>
                                 </div>
                                 <div className="relative h-2 rounded-full bg-white/[0.06]">
@@ -754,9 +754,9 @@ export default function ReportViewer() {
                                                 <span className="text-sm font-display font-semibold text-white/90">{m.l}</span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <span className="font-mono text-sm font-bold text-white">${m.v.value.toFixed(0)}</span>
-                                                <span className={`font-mono text-xs font-bold ${m.v.upside >= 0 ? 'text-emerald' : 'text-rose'}`}>
-                                                    {m.v.upside > 0 ? '+' : ''}{m.v.upside.toFixed(1)}%
+                                                <span className="font-mono text-sm font-bold text-white">${safe(m.v.value).toFixed(0)}</span>
+                                                <span className={`font-mono text-xs font-bold ${safe(m.v.upside) >= 0 ? 'text-emerald' : 'text-rose'}`}>
+                                                    {safe(m.v.upside) > 0 ? '+' : ''}{safe(m.v.upside).toFixed(1)}%
                                                 </span>
                                             </div>
                                         </div>
@@ -766,9 +766,9 @@ export default function ReportViewer() {
                             </div>
                             <div className="rounded-xl border border-accent/20 bg-accent/5 p-3 text-center">
                                 <div className="stat-label mb-0.5">Consensus Fair Value</div>
-                                <div className="font-mono text-xl font-bold text-accent">${result.valuationModels.consensus.value.toFixed(0)}</div>
-                                <div className={`font-mono text-sm font-bold ${result.valuationModels.consensus.upside >= 0 ? 'text-emerald' : 'text-rose'}`}>
-                                    {result.valuationModels.consensus.upside > 0 ? '+' : ''}{result.valuationModels.consensus.upside.toFixed(1)}% from current
+                                <div className="font-mono text-xl font-bold text-accent">${safe(result.valuationModels.consensus.value).toFixed(0)}</div>
+                                <div className={`font-mono text-sm font-bold ${safe(result.valuationModels.consensus.upside) >= 0 ? 'text-emerald' : 'text-rose'}`}>
+                                    {safe(result.valuationModels.consensus.upside) > 0 ? '+' : ''}{safe(result.valuationModels.consensus.upside).toFixed(1)}% from current
                                 </div>
                             </div>
                         </SectionCard>

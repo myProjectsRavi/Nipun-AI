@@ -1,7 +1,11 @@
+import { lazy, Suspense } from 'react';
 import { useStore } from './store';
 import KeyVault from './components/KeyVault';
 import AnalysisForm from './components/AnalysisForm';
-import ReportViewer from './components/ReportViewer';
+import ErrorBoundary from './components/ErrorBoundary';
+
+// Lazy-load heavy components (ReportViewer ~1048 LOC + Recharts ~200KB)
+const ReportViewer = lazy(() => import('./components/ReportViewer'));
 
 const FEATURES = [
     { icon: '🏆', title: 'Nipun Score™', desc: 'A+ to F letter grade with actionable recommendation', tag: 'EXCLUSIVE' },
@@ -66,15 +70,30 @@ export default function App() {
     const { view } = useStore();
 
     return (
-        <div className="min-h-screen font-body">
-            <Nav />
-            <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-                {view === 'setup' && <LandingPage />}
-                {view === 'analysis' && <AnalysisForm />}
-                {view === 'report' && <ReportViewer />}
-            </main>
-            <Footer />
-        </div>
+        <ErrorBoundary>
+            <div className="min-h-screen font-body">
+                <Nav />
+                <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+                    {view === 'setup' && <LandingPage />}
+                    {view === 'analysis' && <AnalysisForm />}
+                    {view === 'report' && (
+                        <Suspense fallback={
+                            <div className="flex items-center justify-center py-20">
+                                <div className="text-center animate-fade-in">
+                                    <div className="text-4xl mb-3 animate-pulse">📊</div>
+                                    <p className="text-sm text-white/50">Loading report...</p>
+                                </div>
+                            </div>
+                        }>
+                            <ErrorBoundary>
+                                <ReportViewer />
+                            </ErrorBoundary>
+                        </Suspense>
+                    )}
+                </main>
+                <Footer />
+            </div>
+        </ErrorBoundary>
     );
 }
 

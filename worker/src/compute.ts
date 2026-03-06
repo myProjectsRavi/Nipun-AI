@@ -156,9 +156,11 @@ export function computeFinancialHealth(
     if (candles && candles.length > 20) {
         const returns = [];
         for (let i = 1; i < candles.length; i++) {
-            returns.push((candles[i] - candles[i - 1]) / candles[i - 1]);
+            if (candles[i - 1] !== 0) {
+                returns.push((candles[i] - candles[i - 1]) / candles[i - 1]);
+            }
         }
-        const stdDev = Math.sqrt(returns.reduce((s, r) => s + r * r, 0) / returns.length);
+        const stdDev = returns.length > 0 ? Math.sqrt(returns.reduce((s, r) => s + r * r, 0) / returns.length) : 0;
         const annualVol = stdDev * Math.sqrt(252);
         volatilityCategory = annualVol > 0.5 ? 'high' : annualVol > 0.25 ? 'moderate' : 'low';
     } else if (financials.beta > 1.5) {
@@ -290,9 +292,9 @@ export function computeMomentum(candles: number[] | null, financials: FinancialD
     const medPerf = d30 > 0 ? ((latest - d30) / d30) * 100 : 0;
     const longPerf = d90 > 0 ? ((latest - d90) / d90) * 100 : 0;
 
-    // Momentum score: weighted average of timeframes
+    // Momentum score: weighted average of timeframes (guard against NaN)
     const rawScore = shortPerf * 0.4 + medPerf * 0.35 + longPerf * 0.25;
-    const score = clamp(Math.round(50 + rawScore * 3), 0, 100);
+    const score = clamp(Math.round(isFinite(rawScore) ? 50 + rawScore * 3 : 50), 0, 100);
 
     const trend: MomentumData['trend'] =
         score >= 80 ? 'strong-up' :
@@ -329,7 +331,7 @@ export function computeValueGrowth(financials: FinancialData): ValueGrowthProfil
     const bvpsEstimate = eps > 0 ? eps * 8 : price * 0.5;
     const priceToBook = bvpsEstimate > 0 ? round2(price / bvpsEstimate) : 0;
 
-    // P/S: price / revenue per share
+    // P/S: price / revenue per share (guard against zero revenue)
     const priceToSales = revenue > 0 ? round2(price / revenue) : 0;
 
     // Value score: lower PE + PEG + P/B = more value
@@ -392,7 +394,7 @@ export function computeRiskReward(financials: FinancialData, candles: number[] |
     // Risk level: beta + volatility + drawdown
     const riskLevel = clamp(Math.round(beta * 3 + (maxDrawdownEstimate > 30 ? 3 : maxDrawdownEstimate > 15 ? 1 : 0)), 1, 10);
     const rewardPotential = clamp(Math.round(upsidePotential / 5 + (financials.eps > 0 ? 2 : 0) + (financials.grossMargin > 40 ? 2 : 0)), 1, 10);
-    const ratio = riskLevel > 0 ? round2(rewardPotential / riskLevel) : 1;
+    const ratio = riskLevel > 0 ? round2(rewardPotential / riskLevel) : 0;
 
     const rating: RiskRewardProfile['rating'] =
         ratio >= 2 ? 'Excellent' :
@@ -450,8 +452,8 @@ export function computeExtendedTechnicals(candles: number[], highs?: number[], l
     // Bollinger Bands (20-day, 2σ)
     const bbPeriod = 20;
     const bbSlice = candles.slice(-bbPeriod);
-    const bbMean = bbSlice.reduce((a, b) => a + b, 0) / bbSlice.length;
-    const bbStdDev = Math.sqrt(bbSlice.reduce((s, v) => s + (v - bbMean) ** 2, 0) / bbSlice.length);
+    const bbMean = bbSlice.length > 0 ? bbSlice.reduce((a, b) => a + b, 0) / bbSlice.length : 0;
+    const bbStdDev = bbSlice.length > 0 ? Math.sqrt(bbSlice.reduce((s, v) => s + (v - bbMean) ** 2, 0) / bbSlice.length) : 0;
     const bollingerBands = {
         upper: round2(bbMean + 2 * bbStdDev),
         middle: round2(bbMean),
@@ -518,10 +520,12 @@ export function computeExtendedTechnicals(candles: number[], highs?: number[], l
     // Historical volatility (annualized)
     const returns: number[] = [];
     for (let i = 1; i < candles.length; i++) {
-        returns.push(Math.log(candles[i] / candles[i - 1]));
+        if (candles[i - 1] > 0) {
+            returns.push(Math.log(candles[i] / candles[i - 1]));
+        }
     }
-    const meanReturn = returns.reduce((a, b) => a + b, 0) / returns.length;
-    const variance = returns.reduce((s, r) => s + (r - meanReturn) ** 2, 0) / returns.length;
+    const meanReturn = returns.length > 0 ? returns.reduce((a, b) => a + b, 0) / returns.length : 0;
+    const variance = returns.length > 0 ? returns.reduce((s, r) => s + (r - meanReturn) ** 2, 0) / returns.length : 0;
     const historicalVolatility = round2(Math.sqrt(variance * 252) * 100);
 
     // VWAP proxy (using close as proxy since we don't have intraday volume)
@@ -588,9 +592,10 @@ export function computeValuationModels(financials: FinancialData): ValuationMode
 
 // ─── Earnings Quality Score ────────────────────────────────────────
 export function computeEarningsQuality(earnings: EarningsData | null): number {
-    if (!earnings || earnings.surprises.length === 0) return 50;
+    if (!earnings || !earnings.surprises || earnings.surprises.length === 0) return 50;
     const beats = earnings.surprises.filter(s => s.beat).length;
     const total = earnings.surprises.length;
+    if (total === 0) return 50;
     const beatRate = beats / total;
     // Average surprise magnitude
     const avgSurprise = earnings.surprises.reduce((s, e) => s + Math.abs(e.surprisePercent), 0) / total;

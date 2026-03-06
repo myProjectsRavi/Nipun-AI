@@ -3,8 +3,24 @@
  * Uses the Web Crypto API — available in all modern browsers at zero cost.
  */
 
-const STORAGE_KEY = 'af_encrypted_keys';
-const SALT_KEY = 'af_salt';
+const STORAGE_KEY = 'nipun_encrypted_keys';
+const SALT_KEY = 'nipun_salt';
+
+// Legacy keys from AlphaForge era — migrate on first load
+const LEGACY_STORAGE_KEY = 'af_encrypted_keys';
+const LEGACY_SALT_KEY = 'af_salt';
+
+/** Migrate legacy af_ keys to nipun_ prefix (one-time, idempotent) */
+export function migrateLegacyKeys(): void {
+    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+    if (legacy && !localStorage.getItem(STORAGE_KEY)) {
+        localStorage.setItem(STORAGE_KEY, legacy);
+        const legacySalt = localStorage.getItem(LEGACY_SALT_KEY);
+        if (legacySalt) localStorage.setItem(SALT_KEY, legacySalt);
+        localStorage.removeItem(LEGACY_STORAGE_KEY);
+        localStorage.removeItem(LEGACY_SALT_KEY);
+    }
+}
 
 export interface APIKeys {
     finnhub: string;
@@ -27,7 +43,7 @@ async function deriveKey(passphrase: string, salt: Uint8Array): Promise<CryptoKe
     return crypto.subtle.deriveKey(
         {
             name: 'PBKDF2',
-            salt: salt as unknown as BufferSource,
+            salt: salt.buffer,
             iterations: 100000,
             hash: 'SHA-256',
         },
@@ -73,9 +89,9 @@ export async function decryptKeys(passphrase: string): Promise<APIKeys | null> {
         const key = await deriveKey(passphrase, salt);
 
         const decrypted = await crypto.subtle.decrypt(
-            { name: 'AES-GCM', iv: iv as unknown as BufferSource },
+            { name: 'AES-GCM', iv: iv.buffer },
             key,
-            data as unknown as BufferSource
+            data.buffer
         );
 
         const decoder = new TextDecoder();
@@ -92,6 +108,45 @@ export function hasStoredKeys(): boolean {
 export function clearStoredKeys(): void {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(SALT_KEY);
+}
+
+// ─── Cache Encryption (encrypts analysis results in localStorage) ──
+const CACHE_KEY_PASSPHRASE = 'nipun_cache_v1'; // Static key for cache — not secrets, just obfuscation + XSS protection
+
+export async function encryptCache(data: string): Promise<string> {
+    const encoder = new TextEncoder();
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const key = await deriveKey(CACHE_KEY_PASSPHRASE, salt);
+    const encrypted = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        encoder.encode(data)
+    );
+    const payload = {
+        s: arrayToBase64(salt),
+        i: arrayToBase64(iv),
+        d: arrayToBase64(new Uint8Array(encrypted)),
+    };
+    return JSON.stringify(payload);
+}
+
+export async function decryptCache(stored: string): Promise<string | null> {
+    try {
+        const payload = JSON.parse(stored) as { s: string; i: string; d: string };
+        const salt = base64ToArray(payload.s);
+        const iv = base64ToArray(payload.i);
+        const data = base64ToArray(payload.d);
+        const key = await deriveKey(CACHE_KEY_PASSPHRASE, salt);
+        const decrypted = await crypto.subtle.decrypt(
+            { name: 'AES-GCM', iv: iv.buffer },
+            key,
+            data.buffer
+        );
+        return new TextDecoder().decode(decrypted);
+    } catch {
+        return null;
+    }
 }
 
 // ─── Base64 Helpers ────────────────────────────────────────────────

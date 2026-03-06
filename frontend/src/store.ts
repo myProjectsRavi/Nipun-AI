@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { APIKeys } from './utils/crypto';
+import { encryptCache, decryptCache, migrateLegacyKeys } from './utils/crypto';
 
 // ─── Types matching the Worker response ────────────────────────────
 export interface FinancialData {
@@ -413,24 +414,30 @@ export const useStore = create<AppState>((set, get) => ({
     analysisPhase: '',
     result: null,
     error: null,
-    setTicker: (t) => set({ ticker: t }),
+    setTicker: (t) => set({ ticker: t.toUpperCase().trim() }),
     clearResult: () => set({ result: null, error: null }),
 
     runAnalysis: async (workerUrl?: string) => {
         const { ticker, keys, demoMode } = get();
         if (!ticker) return;
 
-        // --- CACHE CHECK ---
+        // Migrate legacy af_ keys on first use
+        migrateLegacyKeys();
+
+        // --- CACHE CHECK (encrypted) ---
         if (!demoMode) {
             try {
                 const cached = localStorage.getItem(`nipun_cache_${ticker}`);
                 if (cached) {
-                    const parsedData = JSON.parse(cached) as AnalysisResponse;
-                    const cacheTime = new Date(parsedData.timestamp).getTime();
-                    // 4 hours cache TTL
-                    if (Date.now() - cacheTime < 4 * 60 * 60 * 1000) {
-                        set({ result: parsedData, view: 'report', error: null, analysisPhase: '' });
-                        return; // Use cache
+                    const decrypted = await decryptCache(cached);
+                    if (decrypted) {
+                        const parsedData = JSON.parse(decrypted) as AnalysisResponse;
+                        const cacheTime = new Date(parsedData.timestamp).getTime();
+                        // 4 hours cache TTL
+                        if (Date.now() - cacheTime < 4 * 60 * 60 * 1000) {
+                            set({ result: parsedData, view: 'report', error: null, analysisPhase: '' });
+                            return; // Use cache
+                        }
                     }
                 }
             } catch (e) {
@@ -446,10 +453,14 @@ export const useStore = create<AppState>((set, get) => ({
                 ? { finnhub: '', groq: '', gemini: '', cohere: '', cerebras: '' }
                 : keys || { finnhub: '', groq: '', gemini: '', cohere: '' };
 
+            // Security: Send API keys in encrypted header, not in request body
             const res = await fetch(`${url}/analyze`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ticker, keys: requestKeys }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Nipun-Keys': btoa(JSON.stringify(requestKeys)),
+                },
+                body: JSON.stringify({ ticker }),
             });
 
             if (!res.ok) {
@@ -460,10 +471,11 @@ export const useStore = create<AppState>((set, get) => ({
             set({ analysisPhase: '📊 Processing results...' });
             const data = (await res.json()) as AnalysisResponse;
 
-            // --- SAVE TO CACHE ---
+            // --- SAVE TO CACHE (encrypted) ---
             if (!demoMode) {
                 try {
-                    localStorage.setItem(`nipun_cache_${ticker}`, JSON.stringify(data));
+                    const encrypted = await encryptCache(JSON.stringify(data));
+                    localStorage.setItem(`nipun_cache_${ticker}`, encrypted);
                 } catch (e) { }
             }
 

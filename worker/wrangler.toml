@@ -9,4 +9,5 @@ ENVIRONMENT = "production"
 
 # CORS: allowed origins (comma-separated). Update after deploying Pages.
 # The worker reads this at runtime to set Access-Control-Allow-Origin.
-ALLOWED_ORIGINS = "http://localhost:5173,https://nipun-ai.pages.dev,https://e9d0df18.nipun-ai.pages.dev"
+# Note: *.nipun-ai.pages.dev preview URLs are handled dynamically via regex in the worker.
+ALLOWED_ORIGINS = "http://localhost:5173,https://nipun-ai.pages.dev"
