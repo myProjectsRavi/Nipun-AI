@@ -14,3 +14,9 @@ DEMO_ONLY = "false"
 # frontend URL here. For local development, localhost:5173 is already included.
 # *.pages.dev preview URLs are handled dynamically via regex in the worker.
 ALLOWED_ORIGINS = "http://localhost:5173,https://nipun-ai.pages.dev"
+
+# ── Secrets (do NOT add values here — use `wrangler secret put <NAME>`) ──────
+# SEC_API_EMAIL  — your contact email for SEC EDGAR User-Agent header.
+#                  Required by SEC fair-access policy. Falls back to the
+#                  project GitHub URL if not set (still functional).
+#                  Run: wrangler secret put SEC_API_EMAIL

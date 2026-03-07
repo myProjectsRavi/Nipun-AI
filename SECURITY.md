@@ -40,7 +40,7 @@ Nipun AI follows a **Zero-Trust, Zero-Knowledge, BYOK (Bring Your Own Keys)** se
 - Request bodies can be logged by proxies, CDNs, and middleware
 - Cloudflare Workers do not log request headers by default
 - Headers are excluded from most access log configurations
-- The `X-Nipun-Keys` header is stripped after processing
+- Keys exist only in Worker isolate memory for the duration of the request — never persisted
 
 ### Cache Encryption (Client-Side)
 

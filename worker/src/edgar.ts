@@ -3,13 +3,25 @@ import type { SECFiling } from './types';
 /** Cache the ~3 MB SEC ticker map for 24 hours at the edge. */
 const TICKER_MAP_URL = 'https://www.sec.gov/files/company_tickers.json';
 const TICKER_MAP_CACHE_TTL = 86_400; // 24 h in seconds
-const SEC_UA = { 'User-Agent': 'NipunAI research@nipun.ai' };
+
+/**
+ * Build SEC-compliant User-Agent header.
+ * SEC EDGAR fair-access policy requires a contact email or URL.
+ * Self-hosters: set the SEC_API_EMAIL secret via `wrangler secret put SEC_API_EMAIL`.
+ */
+function buildSecUA(secEmail?: string): { 'User-Agent': string } {
+    return {
+        'User-Agent': secEmail
+            ? `NipunAI ${secEmail}`
+            : 'NipunAI/1.0 (https://github.com/myProjectsRavi/Nipun-AI)',
+    };
+}
 
 /**
  * Fetch the SEC company_tickers.json with Cloudflare Cache API.
  * First request per PoP fetches from SEC; subsequent requests are instant.
  */
-async function fetchTickerMap(): Promise<Record<string, { cik_str: number; ticker: string; title: string }> | null> {
+async function fetchTickerMap(secUA: { 'User-Agent': string }): Promise<Record<string, { cik_str: number; ticker: string; title: string }> | null> {
     const cache = caches.default;
     const cacheKey = new Request(TICKER_MAP_URL);
 
@@ -18,7 +30,7 @@ async function fetchTickerMap(): Promise<Record<string, { cik_str: number; ticke
     if (cached) return cached.json();
 
     // 2. Origin fetch
-    const res = await fetch(TICKER_MAP_URL, { headers: SEC_UA });
+    const res = await fetch(TICKER_MAP_URL, { headers: secUA });
     if (!res.ok) return null;
 
     // 3. Clone + cache with TTL
@@ -36,12 +48,13 @@ async function fetchTickerMap(): Promise<Record<string, { cik_str: number; ticke
  * Requires a User-Agent header with contact info (SEC requirement).
  * Returns both filings and the CIK (Central Index Key) for source links.
  */
-export async function fetchSECFilings(ticker: string): Promise<{ filings: SECFiling[]; cik: string | null }> {
+export async function fetchSECFilings(ticker: string, secEmail?: string): Promise<{ filings: SECFiling[]; cik: string | null }> {
     // Look up CIK from SEC's ticker map, then fetch filings by CIK
     const tickerLower = ticker.toLowerCase();
+    const secUA = buildSecUA(secEmail);
 
     try {
-        const tickerMap = await fetchTickerMap();
+        const tickerMap = await fetchTickerMap(secUA);
         if (!tickerMap) return { filings: [], cik: null };
         let cik: string | null = null;
 
@@ -57,7 +70,7 @@ export async function fetchSECFilings(ticker: string): Promise<{ filings: SECFil
         // Fetch filings from EDGAR
         const filingsRes = await fetch(
             `https://data.sec.gov/submissions/CIK${cik}.json`,
-            { headers: SEC_UA }
+            { headers: secUA }
         );
 
         if (!filingsRes.ok) return { filings: [], cik };

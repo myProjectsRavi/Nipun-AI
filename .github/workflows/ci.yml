@@ -38,14 +38,17 @@ jobs:
       - run: cd ${{ matrix.package }} && npx tsc --noEmit
 
   test:
-    name: Unit Tests
+    name: Unit Tests (${{ matrix.package }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [worker, frontend]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: worker/package-lock.json
-      - run: cd worker && npm ci
-      - run: cd worker && npx vitest run --reporter=verbose
+          cache-dependency-path: ${{ matrix.package }}/package-lock.json
+      - run: cd ${{ matrix.package }} && npm ci
+      - run: cd ${{ matrix.package }} && npx vitest run --reporter=verbose

@@ -140,7 +140,7 @@ export default {
                         result.hostedDemoNotice = '🏠 This hosted instance runs in demo mode only to keep it free. For live data, deploy your own instance in 5 minutes — it\'s free! See github.com/myProjectsRavi/Nipun-AI';
                     }
                 } else {
-                    result = await buildLiveResponse(upperTicker, keys!);
+                    result = await buildLiveResponse(upperTicker, keys!, env.SEC_API_EMAIL);
                 }
 
                 return handleCORS(request, env, Response.json(result));
@@ -208,9 +208,9 @@ function buildDemoResponse(upperTicker: string): AnalysisResponse {
     };
 }
 
-async function buildLiveResponse(upperTicker: string, keys: AnalysisKeys): Promise<AnalysisResponse> {
+async function buildLiveResponse(upperTicker: string, keys: AnalysisKeys, secEmail?: string): Promise<AnalysisResponse> {
     // ── Phase 1: Data Collection ─────────────────────────────
-    const { financials, sentiment, risks, catalysts, newsHeadlines, technicals, candles, insiderActivity, earnings, peers, secFilings, secCik, analystConsensus, priceTarget, institutionalOwnership, balanceSheet, fallbacks: phase1Fallbacks } = await phaseFetchData(upperTicker, keys);
+    const { financials, sentiment, risks, catalysts, newsHeadlines, technicals, candles, insiderActivity, earnings, peers, secFilings, secCik, analystConsensus, priceTarget, institutionalOwnership, balanceSheet, fallbacks: phase1Fallbacks } = await phaseFetchData(upperTicker, keys, secEmail);
 
     // ── Phase 2: Compute (ZERO API calls) ────────────────────
     const { investmentScore, financialHealth, momentum, valueGrowth, riskReward, dividendAnalysis, valuationModels, earningsQualityScore, extendedTechnicals, nipunScore } = phaseCompute(financials, technicals, candles, sentiment, risks, insiderActivity, earnings, balanceSheet);
@@ -266,7 +266,7 @@ async function buildLiveResponse(upperTicker: string, keys: AnalysisKeys): Promi
 }
 
 /** Phase 1: Fetch all external data in parallel */
-async function phaseFetchData(upperTicker: string, keys: AnalysisKeys) {
+async function phaseFetchData(upperTicker: string, keys: AnalysisKeys, secEmail?: string) {
     const fallbacks: string[] = [];
 
     // Phase 1a: Core Financials (Finnhub)
@@ -327,7 +327,7 @@ async function phaseFetchData(upperTicker: string, keys: AnalysisKeys) {
             catch (err) { logger.error('phase1', 'Peers failed, using mock', err); fallbacks.push('Peer comparison'); return getMockPeers(upperTicker); }
         })(),
         (async () => {
-            try { return await fetchSECFilings(upperTicker); }
+            try { return await fetchSECFilings(upperTicker, secEmail); }
             catch (err) { logger.error('phase1', 'SEC filings failed', err); fallbacks.push('SEC filings'); return { filings: getMockSECFilings(upperTicker), cik: null }; }
         })(),
         (async () => {
@@ -466,6 +466,7 @@ function handleCORS(request: Request, env: Env, response: Response): Response {
     headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Nipun-Keys');
     headers.set('Access-Control-Max-Age', '86400');
+    headers.set('Vary', 'Origin');
 
     // Security headers
     headers.set('X-Content-Type-Options', 'nosniff');

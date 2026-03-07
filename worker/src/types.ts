@@ -23,4 +23,10 @@ export interface Env {
     ALLOWED_ORIGINS: string;
     /** Set to 'true' in YOUR Cloudflare dashboard to force demo-only mode on hosted instance */
     DEMO_ONLY?: string;
+    /**
+     * Contact email for SEC EDGAR User-Agent header (required by SEC fair-access policy).
+     * Store as a Cloudflare secret: `wrangler secret put SEC_API_EMAIL`
+     * Falls back to the project GitHub URL if not set.
+     */
+    SEC_API_EMAIL?: string;
 }

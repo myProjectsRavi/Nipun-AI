@@ -4,7 +4,7 @@
 [![npm](https://img.shields.io/badge/npx-nipun--ai-cb3837?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/nipun-ai)
 [![Security: AES-256-GCM](https://img.shields.io/badge/Security-AES--256--GCM-red?style=for-the-badge)](SECURITY.md)
 [![Zero Cost](https://img.shields.io/badge/Cost-$0%2Fmonth-brightgreen?style=for-the-badge)](https://github.com/myProjectsRavi/Nipun-AI)
-[![Tests](https://img.shields.io/badge/Tests-74_passing-brightgreen?style=for-the-badge)](https://github.com/myProjectsRavi/Nipun-AI)
+[![Tests](https://img.shields.io/badge/Tests-95_passing-brightgreen?style=for-the-badge)](https://github.com/myProjectsRavi/Nipun-AI)
 [![Open Source](https://img.shields.io/badge/Open_Source-100%25-blueviolet?style=for-the-badge&logo=github)](https://github.com/myProjectsRavi/Nipun-AI)
 [![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Try_Now-ff6b6b?style=for-the-badge)](https://nipun-ai.pages.dev/)
 
@@ -57,14 +57,20 @@ npx nipun-ai
 # 1. Clone
 git clone https://github.com/myProjectsRavi/Nipun-AI.git && cd Nipun-AI
 
-# 2. Start the Worker (serverless backend)
-cd worker && npm install && npx wrangler dev
+# 2. (One-time) Set your SEC EDGAR contact — required by SEC fair-access policy
+#    Your email is stored as an encrypted Cloudflare secret and never exposed publicly.
+cd worker && npx wrangler secret put SEC_API_EMAIL
 
-# 3. Start the Frontend (in another terminal)
-cd frontend && npm install && npm run dev
+# 3. Start the Worker (serverless backend)
+npx wrangler dev
+
+# 4. Start the Frontend (in another terminal)
+cd ../frontend && npm install && npm run dev
 ```
 
 Open `http://localhost:5173` → Enter API keys → Analyze any stock ticker.
+
+> **Self-hosters:** The production build ships with `VITE_DEMO_ONLY=true` (in `frontend/.env.production`) to power the [live demo](https://nipun-ai.pages.dev). When deploying your own instance with real API keys, create a `frontend/.env.production.local` file with `VITE_DEMO_ONLY=false` or remove the variable entirely to enable full live analysis.
 
 </details>
 
