@@ -20,82 +20,34 @@ Bloomberg charges $24,000/year. Nipun AI delivers comparable depth for **free** 
 
 ---
 
-## ⚡ Quick Start
+## ⚡ Quick Start (Under 1 Minute)
 
-### 🟢 Non-Technical Users — Step-by-Step Setup
+### Step 1 — Install Node.js (one-time, skip if already installed)
 
-Choose your operating system and paste each command into your terminal. You only need to do this **once**.
+| OS | Command |
+|----|---------|
+| 🍎 **macOS** | Open **Terminal** (`Cmd+Space` → type "Terminal") then run: `brew install node` |
+| 🪟 **Windows** | Open **PowerShell** (`Win+S` → search "PowerShell") then run: `winget install OpenJS.NodeJS.LTS` |
+| 🐧 **Linux** | `sudo apt update && sudo apt install -y nodejs npm` |
+
+> **Don't have `brew`?** Run this first: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+
+### Step 2 — Launch Nipun AI
+
+```bash
+npx nipun-ai
+```
+
+**That's it.** Browser opens automatically. Click **Demo Mode** to explore instantly — no API keys needed.
+
+> **Already installed?** Just run `npx nipun-ai` again anytime — it starts instantly.
 
 ---
 
-#### 🍎 macOS
+### 🔧 Manual Setup (Developers)
 
-**Step 1 — Open Terminal**
-Press `Cmd ⌘ + Space`, type **Terminal**, press Enter.
-
-**Step 2 — Install Homebrew** (Mac's package manager — skip if already installed)
-```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
-
-**Step 3 — Install Node.js and Git**
-```bash
-brew install node git
-```
-
-**Step 4 — Clone and launch Nipun AI**
-```bash
-git clone https://github.com/myProjectsRavi/Nipun-AI.git && cd Nipun-AI && bash setup.sh
-```
-
----
-
-#### 🪟 Windows
-
-**Step 1 — Open PowerShell as Administrator**
-Press `Win + S`, search **PowerShell**, right-click → **Run as Administrator**.
-
-**Step 2 — Install Chocolatey** (Windows package manager — skip if already installed)
-```powershell
-Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-```
-
-**Step 3 — Install Node.js and Git** (close and reopen PowerShell after Step 2)
-```powershell
-choco install nodejs git -y
-```
-
-**Step 4 — Clone and launch Nipun AI**
-```powershell
-git clone https://github.com/myProjectsRavi/Nipun-AI.git; cd Nipun-AI; .\setup.bat
-```
-
----
-
-#### 🐧 Linux (Ubuntu / Debian)
-
-**Step 1 — Open Terminal** (`Ctrl + Alt + T`)
-
-**Step 2 — Install Node.js and Git**
-```bash
-sudo apt update && sudo apt install -y nodejs npm git
-```
-
-**Step 3 — Clone and launch Nipun AI**
-```bash
-git clone https://github.com/myProjectsRavi/Nipun-AI.git && cd Nipun-AI && bash setup.sh
-```
-
----
-
-The browser opens automatically. Click **Demo Mode** to explore instantly — no API keys needed.
-
-> **Already set up?** Next time, just run `bash setup.sh` (or `setup.bat` on Windows) from the `Nipun-AI` folder.
-
-
----
-
-### 🔧 Developers (3 Steps)
+<details>
+<summary>Click to expand — for contributors or those who prefer full control</summary>
 
 ```bash
 # 1. Clone
@@ -108,9 +60,10 @@ cd worker && npm install && npx wrangler dev
 cd frontend && npm install && npm run dev
 ```
 
-Open `http://localhost:5173` → Enter API keys → Analyze any US stock ticker.
+Open `http://localhost:5173` → Enter API keys → Analyze any stock ticker.
 
-> **No API keys?** Try **Demo Mode** — full analysis with realistic mock data, zero setup required.
+</details>
+
 
 ---
 
