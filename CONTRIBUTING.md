@@ -76,7 +76,7 @@ docs: add API endpoint documentation
 ### High-Impact Contributions
 
 - **Unit tests** for `compute.ts` (10 pure functions, easy to test)
-- **CLI tool** (`npx nipun-ai AAPL`) for terminal-based analysis
+- **CLI ticker support** (`npx nipun-ai AAPL`) — add direct ticker arg to CLI for terminal-based analysis
 - **International market support** (BSE/NSE/LSE tickers)
 - **Portfolio mode** (multi-stock dashboard)
 - **Embeddable widget** for blogs and websites
@@ -114,7 +114,7 @@ When filing a bug report, include:
 
 ## Security Issues
 
-See [SECURITY.md](SECURITY.md) for how to report security vulnerabilities. **Do not** open public issues for security bugs.
+See [SECURITY.md](SECURITY.md) for how to report security vulnerabilities. Open a [GitHub Issue](https://github.com/myProjectsRavi/Nipun-AI/issues/new) with `[SECURITY]` in the title — include a brief, non-exploitable description.
 
 ---
 

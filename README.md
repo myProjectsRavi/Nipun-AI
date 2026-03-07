@@ -24,13 +24,21 @@ Bloomberg charges $24,000/year. Nipun AI delivers comparable depth for **free** 
 
 ### Step 1 — Install Node.js (one-time, skip if already installed)
 
-| OS | Command |
-|----|---------|
-| 🍎 **macOS** | Open **Terminal** (`Cmd+Space` → type "Terminal") then run: `brew install node` |
-| 🪟 **Windows** | Open **PowerShell** (`Win+S` → search "PowerShell") then run: `winget install OpenJS.NodeJS.LTS` |
-| 🐧 **Linux** | `sudo apt update && sudo apt install -y nodejs npm` |
+**🍎 macOS** — Open Terminal (`Cmd+Space`, type "Terminal"), then:
+```bash
+brew install node
+```
+> Don't have `brew`? Run this first: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
 
-> **Don't have `brew`?** Run this first: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+**🪟 Windows** — Open PowerShell (`Win+S`, search "PowerShell"), then:
+```powershell
+winget install OpenJS.NodeJS.LTS
+```
+
+**🐧 Linux** — Open Terminal (`Ctrl+Alt+T`), then:
+```bash
+sudo apt update && sudo apt install -y nodejs npm
+```
 
 ### Step 2 — Launch Nipun AI
 
@@ -38,7 +46,7 @@ Bloomberg charges $24,000/year. Nipun AI delivers comparable depth for **free** 
 npx nipun-ai
 ```
 
-**That's it.** Browser opens automatically. Click **Demo Mode** to explore instantly — no API keys needed.
+**That's it.** Browser opens automatically. Click **Manage Keys** → try **Demo Mode** for instant preview, or enter your free API keys for real-time live analysis.
 
 > **Already installed?** Just run `npx nipun-ai` again anytime — it starts instantly.
 
@@ -79,7 +87,7 @@ Nipun AI is free, open-source, and always will be. If it's useful to you, a coff
 
 <p align="center"><em>Donations are a voluntary thank-you for existing work — not a support contract.</em></p>
 
-> **🌐 Try It**: Clone the repo and run `setup.sh` to try Nipun AI locally. **Demo Mode** works with zero API keys - or add your own free keys for live data.
+> **🌐 Try It**: Run `npx nipun-ai` to launch Nipun AI locally. Try **Demo Mode** with zero API keys, or add your free keys for live data.
 
 ---
 
@@ -112,13 +120,13 @@ Nipun AI is free, open-source, and always will be. If it's useful to you, a coff
 | Earnings Quality Score | ✅ | ❌ | ❌ | ❌ | ✅ |
 | Value vs Growth Classification | ✅ | ❌ | ❌ | ❌ | ✅ |
 | Dividend Safety Analysis | ✅ | ✅ | ❌ | ✅ | ✅ |
-| Research Sources (50+ Primary Links) | ✅ | ❌ | ❌ | ❌ | ✅ |
+| Verifiable Research Links | ✅ | ❌ | ❌ | ❌ | ✅ |
 | 55+ Data Dimensions | ✅ | ❌ | ❌ | ❌ | ✅ |
-| **Completely Free** | **✅** | **❌** | **✅** | **✅** | **❌ ($24K/yr)** |
+| **Completely Free** | **✅** | **✅** (basic) | **✅** | **✅** | **❌ ($24K/yr)** |
 | **BYOK (Zero Server-Side Key Storage)** | **✅** | **N/A** | **N/A** | **N/A** | **N/A** |
 | **Zero Infrastructure** | **✅** | **❌** | **❌** | **❌** | **❌** |
 
-**Nipun AI: 28/28** · Screener.in: 5/28 · Perplexity: 4/28 · Yahoo Finance: 7/28 · Bloomberg: 23/28 (at $24K/year)
+**Nipun AI: 28/28** · Screener.in: 6/28 · Perplexity: 4/28 · Yahoo Finance: 7/28 · Bloomberg: 23/28 (at $24K/year)
 
 ---
 
@@ -233,7 +241,7 @@ Every analysis produces a comprehensive report with:
 
 | Layer | Technology | Why |
 |---|---|---|
-| **Runtime** | Cloudflare Workers | Edge compute, 300+ PoPs, 0ms cold start, free tier |
+| **Runtime** | Cloudflare Workers | Edge compute, 330+ PoPs, near-zero cold start, free tier |
 | **Frontend** | React 18 + Vite + TypeScript | Fast builds, type safety |
 | **State** | Zustand | Lightweight, no boilerplate |
 | **Styling** | Tailwind CSS | Utility-first, dark theme |
@@ -249,6 +257,7 @@ Every analysis produces a comprehensive report with:
 
 ```
 Nipun-AI/
+├── cli/                      # npx nipun-ai CLI package (npm)
 ├── setup.sh                  # One-command setup (macOS/Linux)
 ├── setup.bat                 # One-command setup (Windows)
 ├── frontend/                 # React SPA (Cloudflare Pages)
