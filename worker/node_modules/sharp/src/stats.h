@@ -1,10 +1,13 @@
-// Copyright 2013 Lovell Fuller and others.
-// SPDX-License-Identifier: Apache-2.0
+/*!
+  Copyright 2013 Lovell Fuller and others.
+  SPDX-License-Identifier: Apache-2.0
+*/
 
 #ifndef SRC_STATS_H_
 #define SRC_STATS_H_
 
 #include <string>
+#include <vector>
 #include <napi.h>
 
 #include "./common.h"
@@ -24,7 +27,7 @@ struct ChannelStats {
 
   ChannelStats(int minVal, int maxVal, double sumVal, double squaresSumVal,
     double meanVal, double stdevVal, int minXVal, int minYVal, int maxXVal, int maxYVal):
-    min(minVal), max(maxVal), sum(sumVal), squaresSum(squaresSumVal),
+    min(minVal), max(maxVal), sum(sumVal), squaresSum(squaresSumVal),  // NOLINT(build/include_what_you_use)
     mean(meanVal), stdev(stdevVal), minX(minXVal), minY(minYVal), maxX(maxXVal), maxY(maxYVal) {}
 };
 

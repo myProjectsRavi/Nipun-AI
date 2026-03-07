@@ -114,7 +114,7 @@ When filing a bug report, include:
 
 ## Security Issues
 
-See [SECURITY.md](SECURITY.md) for how to report security vulnerabilities. Use [**Private Vulnerability Reporting**](https://github.com/myProjectsRavi/Nipun-AI/security/advisories/new) — do NOT open public issues for security bugs.
+See [SECURITY.md](SECURITY.md) for how to report security vulnerabilities privately. **Do NOT open public issues for security bugs.**
 
 ---
 
