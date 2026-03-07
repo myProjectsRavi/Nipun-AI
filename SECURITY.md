@@ -117,9 +117,9 @@ Access-Control-Max-Age: 86400            # CORS preflight cache (24h)
 
 If you discover a security vulnerability, please report it **privately**:
 
-1. **Email**: Send details to **security@rtn-labs.vercel.app** (or DM on GitHub)
-2. Include: description, steps to reproduce, and potential impact
-3. The report stays private until a fix is released
+1. Go to [**Report a Vulnerability**](https://github.com/myProjectsRavi/Nipun-AI/security/advisories/new)
+2. Fill in the details: description, steps to reproduce, and potential impact
+3. The report is **only visible to maintainers** — it stays private until a fix is released
 
 > **⚠️ Do NOT open public GitHub issues for security vulnerabilities.** This protects users from potential exploits while we work on a fix.
 
