@@ -30,6 +30,13 @@ export interface FinancialData {
     debtToEquity: number;
     dividendYield: number;
     sector: string;
+    // ── Extended Metrics (from Finnhub stock/metric — zero additional API requests) ──
+    bookValuePerShare?: number;
+    currentRatioReported?: number;
+    quickRatioReported?: number;
+    roaTTM?: number;
+    operatingMarginReported?: number;
+    interestCoverageReported?: number;
 }
 
 // ─── Technical Indicators ──────────────────────────────────────────
@@ -143,6 +150,10 @@ export interface FinancialHealth {
     pricePositionPercent: number;
     volatilityCategory: 'low' | 'moderate' | 'high';
     healthSummary: string;
+    /** true when Altman Z uses proxy estimates (no real balance sheet data) */
+    altmanIsEstimated: boolean;
+    /** true when Piotroski uses proxy scoring (always true currently) */
+    piotroskiIsEstimated: boolean;
 }
 
 // ─── Nipun Score™ (Letter Grade) ───────────────────────────────────
@@ -454,4 +465,6 @@ export interface AnalysisResponse {
     isDemo: boolean;
     /** Present when hosted instance is in demo-only mode and user supplied API keys */
     hostedDemoNotice?: string;
+    /** Data sources that fell back to estimated/mock data during live analysis */
+    fallbacks?: string[];
 }

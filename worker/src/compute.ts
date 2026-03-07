@@ -9,6 +9,7 @@ import type {
     InvestmentScore, FinancialHealth, NipunScore,
     MomentumData, ValueGrowthProfile, RiskRewardProfile,
     DividendAnalysis, ExtendedTechnicals, ValuationModels,
+    BalanceSheetData,
 } from './types';
 
 // ─── Investment Score ──────────────────────────────────────────────
@@ -99,11 +100,14 @@ export function computeInvestmentScore(
 }
 
 // ─── Financial Health ──────────────────────────────────────────────
-// Altman Z-Score (simplified for public companies): 1.2*WC/TA + 1.4*RE/TA + 3.3*EBIT/TA + 0.6*MC/TL + 1.0*S/TA
-// Piotroski F-Score: 9-point scoring system
+// Altman Z-Score: 1.2*WC/TA + 1.4*RE/TA + 3.3*EBIT/TA + 0.6*MC/TL + 1.0*S/TA
+// When real balance sheet data is available, uses actual values.
+// Otherwise falls back to proxy estimates (clearly labelled).
+// Piotroski F-Score: always uses proxy scoring (real score needs YoY comparisons).
 export function computeFinancialHealth(
     financials: FinancialData,
-    candles: number[] | null
+    candles: number[] | null,
+    balanceSheet?: BalanceSheetData | null
 ): FinancialHealth {
     const pe = financials.pe || 0;
     const eps = financials.eps || 0;
@@ -113,20 +117,44 @@ export function computeFinancialHealth(
     const h52 = financials.weekHigh52 || price;
     const l52 = financials.weekLow52 || price;
 
-    // Simplified Altman Z — using available metrics as proxies
-    // Z = 1.2*(working capital proxy) + 1.4*(retained earnings proxy) + 3.3*(EBIT proxy) + 0.6*(market cap/debt) + 1.0*(revenue efficiency)
-    const wcProxy = grossMargin > 30 ? 0.3 : grossMargin > 10 ? 0.15 : 0.05;
-    const reProxy = eps > 0 ? 0.2 : -0.1;
-    const ebitProxy = grossMargin > 0 ? (grossMargin / 100) * 0.5 : 0;
-    const mcDebtProxy = debtToEquity > 0 ? Math.min(2, 1 / debtToEquity) : 1.5;
-    const revProxy = financials.revenue > 0 ? 0.3 : 0.1;
+    let altmanZScore: number;
+    let altmanIsEstimated: boolean;
 
-    const altmanZScore = Math.round((1.2 * wcProxy + 1.4 * reProxy + 3.3 * ebitProxy + 0.6 * mcDebtProxy + 1.0 * revProxy) * 100) / 100;
+    // Try real Altman Z-Score with SEC-reported balance sheet data
+    if (balanceSheet && balanceSheet.totalAssets > 0) {
+        const ta = balanceSheet.totalAssets;
+        const wc = balanceSheet.totalCurrentAssets - balanceSheet.totalCurrentLiabilities;
+        const re = balanceSheet.retainedEarnings;
+        const ebit = balanceSheet.ebit;
+        const mve = financials.marketCap * 1_000_000; // Finnhub returns market cap in millions
+        const tl = balanceSheet.totalLiabilities || 1;
+        const sales = balanceSheet.totalRevenue;
+
+        altmanZScore = Math.round((
+            1.2 * (wc / ta) +
+            1.4 * (re / ta) +
+            3.3 * (ebit / ta) +
+            0.6 * (mve / tl) +
+            1.0 * (sales / ta)
+        ) * 100) / 100;
+        altmanIsEstimated = false;
+    } else {
+        // Fallback: simplified proxy calculation (clearly labelled as estimated)
+        const wcProxy = grossMargin > 30 ? 0.3 : grossMargin > 10 ? 0.15 : 0.05;
+        const reProxy = eps > 0 ? 0.2 : -0.1;
+        const ebitProxy = grossMargin > 0 ? (grossMargin / 100) * 0.5 : 0;
+        const mcDebtProxy = debtToEquity > 0 ? Math.min(2, 1 / debtToEquity) : 1.5;
+        const revProxy = financials.revenue > 0 ? 0.3 : 0.1;
+
+        altmanZScore = Math.round((1.2 * wcProxy + 1.4 * reProxy + 3.3 * ebitProxy + 0.6 * mcDebtProxy + 1.0 * revProxy) * 100) / 100;
+        altmanIsEstimated = true;
+    }
+
     const altmanZone: FinancialHealth['altmanZone'] =
         altmanZScore >= 2.99 ? 'safe' :
             altmanZScore >= 1.81 ? 'grey' : 'distress';
 
-    // Piotroski F-Score (simplified — 0 to 9)
+    // Piotroski F-Score — always proxy (real score needs year-over-year comparisons)
     let piotroskiFScore = 0;
     if (eps > 0) piotroskiFScore++;                          // Positive net income
     if (financials.revenue > 0) piotroskiFScore++;           // Positive operating CF proxy
@@ -137,15 +165,22 @@ export function computeFinancialHealth(
     if (financials.marketCap > 1000) piotroskiFScore++;      // No dilution proxy (large cap)
     if (grossMargin > pe * 0.5) piotroskiFScore++;           // Improving margins proxy
     if (financials.revenue > 0) piotroskiFScore++;           // Revenue growth proxy
+    const piotroskiIsEstimated = true; // Always estimated — needs YoY data for real score
 
     const piotroskiRating: FinancialHealth['piotroskiRating'] =
         piotroskiFScore >= 7 ? 'strong' :
             piotroskiFScore >= 4 ? 'moderate' : 'weak';
 
-    // Current & Quick ratio proxies from debt/equity
-    const currentRatio = debtToEquity > 0 ? Math.round((1 / debtToEquity + 0.5) * 100) / 100 : 2.0;
-    const quickRatio = Math.round(currentRatio * 0.8 * 100) / 100;
-    const interestCoverage = eps > 0 && debtToEquity > 0 ? Math.round((eps / (debtToEquity * 0.05)) * 100) / 100 : 10;
+    // Use reported ratios from Finnhub when available, otherwise proxy
+    const currentRatio = financials.currentRatioReported && financials.currentRatioReported > 0
+        ? Math.round(financials.currentRatioReported * 100) / 100
+        : debtToEquity > 0 ? Math.round((1 / debtToEquity + 0.5) * 100) / 100 : 2.0;
+    const quickRatio = financials.quickRatioReported && financials.quickRatioReported > 0
+        ? Math.round(financials.quickRatioReported * 100) / 100
+        : Math.round(currentRatio * 0.8 * 100) / 100;
+    const interestCoverage = financials.interestCoverageReported && financials.interestCoverageReported > 0
+        ? Math.round(financials.interestCoverageReported * 100) / 100
+        : eps > 0 && debtToEquity > 0 ? Math.round((eps / (debtToEquity * 0.05)) * 100) / 100 : 10;
 
     // Price position within 52-week range
     const range = h52 - l52;
@@ -169,6 +204,9 @@ export function computeFinancialHealth(
         volatilityCategory = 'low';
     }
 
+    const altmanLabel = altmanIsEstimated ? 'Est. Altman Z-Score (simplified)' : 'Altman Z-Score';
+    const piotroskiLabel = piotroskiIsEstimated ? 'Est. Piotroski Score (proxy)' : 'Piotroski F-Score';
+
     return {
         altmanZScore,
         altmanZone,
@@ -179,7 +217,9 @@ export function computeFinancialHealth(
         interestCoverage,
         pricePositionPercent,
         volatilityCategory,
-        healthSummary: `Altman Z-Score: ${altmanZScore} (${altmanZone}), Piotroski F-Score: ${piotroskiFScore}/9 (${piotroskiRating}). ${volatilityCategory} volatility. Price at ${pricePositionPercent.toFixed(0)}% of 52-week range.`,
+        healthSummary: `${altmanLabel}: ${altmanZScore} (${altmanZone}), ${piotroskiLabel}: ${piotroskiFScore}/9 (${piotroskiRating}). ${volatilityCategory} volatility. Price at ${pricePositionPercent.toFixed(0)}% of 52-week range.`,
+        altmanIsEstimated,
+        piotroskiIsEstimated,
     };
 }
 
@@ -327,8 +367,10 @@ export function computeValueGrowth(financials: FinancialData): ValueGrowthProfil
     const epsGrowthEst = eps > 0 ? 10 : 0;
     const pegRatio = pe > 0 && epsGrowthEst > 0 ? round2(pe / epsGrowthEst) : 0;
 
-    // P/B proxy: price / (eps * 10 estimate for book value)
-    const bvpsEstimate = eps > 0 ? eps * 8 : price * 0.5;
+    // P/B: use real book value per share from Finnhub when available, otherwise estimate
+    const bvpsEstimate = (financials.bookValuePerShare && financials.bookValuePerShare > 0)
+        ? financials.bookValuePerShare
+        : (eps > 0 ? eps * 8 : price * 0.5);
     const priceToBook = bvpsEstimate > 0 ? round2(price / bvpsEstimate) : 0;
 
     // P/S: price / revenue per share (guard against zero revenue)
@@ -566,9 +608,14 @@ export function computeValuationModels(financials: FinancialData): ValuationMode
     const dcfUpside = price > 0 ? round2(((dcfValue - price) / price) * 100) : 0;
 
     // ─ Graham Number ─
-    // √(22.5 × EPS × BVPS) — BVPS estimated as EPS * 8
-    const bvps = eps > 0 ? eps * 8 : 0;
+    // √(22.5 × EPS × BVPS) — uses real BVPS from Finnhub when available, otherwise estimates as EPS * 8
+    const bvps = (financials.bookValuePerShare && financials.bookValuePerShare > 0)
+        ? financials.bookValuePerShare
+        : (eps > 0 ? eps * 8 : 0);
     const grahamNumber = eps > 0 && bvps > 0 ? round2(Math.sqrt(22.5 * eps * bvps)) : 0;
+    const bvpsNote = (financials.bookValuePerShare && financials.bookValuePerShare > 0)
+        ? 'Graham Number: √(22.5 × EPS × Book Value Per Share) — using reported BVPS'
+        : 'Graham Number: √(22.5 × EPS × est. BVPS) — BVPS estimated as EPS×8';
     const grahamUpside = price > 0 && grahamNumber > 0 ? round2(((grahamNumber - price) / price) * 100) : 0;
 
     // ─ Peter Lynch Fair Value ─
@@ -585,7 +632,7 @@ export function computeValuationModels(financials: FinancialData): ValuationMode
 
     return {
         dcf: { value: dcfValue, upside: dcfUpside, methodology: '10-year discounted cash flow (8% growth, 10% discount, 15x terminal)' },
-        graham: { value: grahamNumber, upside: grahamUpside, methodology: 'Graham Number: √(22.5 × EPS × Book Value Per Share)' },
+        graham: { value: grahamNumber, upside: grahamUpside, methodology: bvpsNote },
         lynch: { value: lynchFairValue, upside: lynchUpside, methodology: 'Peter Lynch fair value: EPS × estimated growth rate' },
         consensus: { value: consensusValue, upside: consensusUpside },
     };

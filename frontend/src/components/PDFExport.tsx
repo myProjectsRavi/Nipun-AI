@@ -373,8 +373,8 @@ export default function PDFExport() {
             doc.setFont('helvetica', 'normal');
             doc.setTextColor(60, 60, 60);
             const healthRows = [
-                ['Altman Z-Score', `${safe(result.financialHealth.altmanZScore).toFixed(2)} (${result.financialHealth.altmanZone})`],
-                ['Piotroski F-Score', `${result.financialHealth.piotroskiFScore}/9 (${result.financialHealth.piotroskiRating})`],
+                [result.financialHealth.altmanIsEstimated ? 'Est. Altman Z-Score' : 'Altman Z-Score', `${safe(result.financialHealth.altmanZScore).toFixed(2)} (${result.financialHealth.altmanZone})`],
+                [result.financialHealth.piotroskiIsEstimated ? 'Est. Piotroski Score' : 'Piotroski F-Score', `${result.financialHealth.piotroskiFScore}/9 (${result.financialHealth.piotroskiRating})`],
                 ['Current Ratio', safe(result.financialHealth.currentRatio).toFixed(2)],
                 ['Quick Ratio', safe(result.financialHealth.quickRatio).toFixed(2)],
                 ['Interest Coverage', `${safe(result.financialHealth.interestCoverage).toFixed(1)}x`],

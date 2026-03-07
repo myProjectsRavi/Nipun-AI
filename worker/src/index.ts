@@ -1,5 +1,5 @@
-import type { AnalysisResponse, AnalysisKeys, Env, FinancialData, TechnicalAnalysis, SentimentResult, RiskFactor, Catalyst, InsiderActivity, EarningsData } from './types';
-import { fetchFinancials, fetchTechnicalIndicators, fetchInsiderTrades, fetchEarningsSurprises, fetchPeers, fetchAnalystConsensus, fetchPriceTargets, fetchInstitutionalOwnership } from './finnhub';
+import type { AnalysisResponse, AnalysisKeys, Env, FinancialData, TechnicalAnalysis, SentimentResult, RiskFactor, Catalyst, InsiderActivity, EarningsData, BalanceSheetData } from './types';
+import { fetchFinancials, fetchTechnicalIndicators, fetchInsiderTrades, fetchEarningsSurprises, fetchPeers, fetchAnalystConsensus, fetchPriceTargets, fetchInstitutionalOwnership, fetchBalanceSheet } from './finnhub';
 import { fetchRedditPosts } from './rss';
 import { analyzeSentiment } from './groq';
 import { extractRisks, synthesizeReport, generatePremiumInsights } from './gemini';
@@ -210,16 +210,19 @@ function buildDemoResponse(upperTicker: string): AnalysisResponse {
 
 async function buildLiveResponse(upperTicker: string, keys: AnalysisKeys): Promise<AnalysisResponse> {
     // ── Phase 1: Data Collection ─────────────────────────────
-    const { financials, sentiment, risks, catalysts, newsHeadlines, technicals, candles, insiderActivity, earnings, peers, secFilings, secCik, analystConsensus, priceTarget, institutionalOwnership } = await phaseFetchData(upperTicker, keys);
+    const { financials, sentiment, risks, catalysts, newsHeadlines, technicals, candles, insiderActivity, earnings, peers, secFilings, secCik, analystConsensus, priceTarget, institutionalOwnership, balanceSheet, fallbacks: phase1Fallbacks } = await phaseFetchData(upperTicker, keys);
 
     // ── Phase 2: Compute (ZERO API calls) ────────────────────
-    const { investmentScore, financialHealth, momentum, valueGrowth, riskReward, dividendAnalysis, valuationModels, earningsQualityScore, extendedTechnicals, nipunScore } = phaseCompute(financials, technicals, candles, sentiment, risks, insiderActivity, earnings);
+    const { investmentScore, financialHealth, momentum, valueGrowth, riskReward, dividendAnalysis, valuationModels, earningsQualityScore, extendedTechnicals, nipunScore } = phaseCompute(financials, technicals, candles, sentiment, risks, insiderActivity, earnings, balanceSheet);
 
     // ── Phase 3: AI Synthesis (parallel Gemini calls) ────────
-    const { report, premiumInsights } = await phaseAISynth(financials, sentiment, risks, catalysts, keys, upperTicker);
+    const { report, premiumInsights, fallbacks: phase3Fallbacks } = await phaseAISynth(financials, sentiment, risks, catalysts, keys, upperTicker);
 
     // ── Phase 4: Secondary AI opinions (parallel, non-fatal) ─
-    const { aiConsensus, audit } = await phaseSecondaryAI(financials, sentiment, risks, catalysts, report, keys);
+    const { aiConsensus, audit, fallbacks: phase4Fallbacks } = await phaseSecondaryAI(financials, sentiment, risks, catalysts, report, keys);
+
+    // Collect all fallbacks
+    const allFallbacks = [...phase1Fallbacks, ...phase3Fallbacks, ...phase4Fallbacks];
 
     return {
         ticker: upperTicker,
@@ -258,11 +261,14 @@ async function buildLiveResponse(upperTicker: string, keys: AnalysisKeys): Promi
         audit,
         disclaimer: DISCLAIMER,
         isDemo: false,
+        fallbacks: allFallbacks.length > 0 ? allFallbacks : undefined,
     };
 }
 
 /** Phase 1: Fetch all external data in parallel */
 async function phaseFetchData(upperTicker: string, keys: AnalysisKeys) {
+    const fallbacks: string[] = [];
+
     // Phase 1a: Core Financials (Finnhub)
     let financials;
     try {
@@ -270,13 +276,15 @@ async function phaseFetchData(upperTicker: string, keys: AnalysisKeys) {
     } catch (err) {
         logger.error('phase1', 'Finnhub financials failed, using mock', err, { ticker: upperTicker });
         financials = getMockFinancials(upperTicker);
+        fallbacks.push('Financial data (Finnhub)');
     }
 
     // Phase 1b: Parallel data collection (all independent)
     const [
         sentimentResult, risksResult, technicalsResult,
         insiderActivity, earnings, peers, secFilingsResult,
-        analystConsensus, priceTarget, institutionalOwnership
+        analystConsensus, priceTarget, institutionalOwnership,
+        balanceSheet
     ] = await Promise.all([
         (async () => {
             try {
@@ -284,6 +292,7 @@ async function phaseFetchData(upperTicker: string, keys: AnalysisKeys) {
                 return await analyzeSentiment(upperTicker, posts, keys.groq);
             } catch (err) {
                 logger.error('phase1', 'Sentiment analysis failed, using mock', err, { ticker: upperTicker });
+                fallbacks.push('Sentiment analysis (Groq)');
                 return getMockSentiment(upperTicker);
             }
         })(),
@@ -292,6 +301,7 @@ async function phaseFetchData(upperTicker: string, keys: AnalysisKeys) {
                 return await extractRisks(upperTicker, keys.gemini);
             } catch (err) {
                 logger.error('phase1', 'Gemini risks failed, using mock', err, { ticker: upperTicker });
+                fallbacks.push('Risk analysis (Gemini)');
                 return { risks: getMockRisks(upperTicker), catalysts: getMockCatalysts(upperTicker), newsHeadlines: [] };
             }
         })(),
@@ -300,24 +310,25 @@ async function phaseFetchData(upperTicker: string, keys: AnalysisKeys) {
                 return await fetchTechnicalIndicators(upperTicker, keys.finnhub);
             } catch (err) {
                 logger.error('phase1', 'Technical indicators failed, using mock', err, { ticker: upperTicker });
+                fallbacks.push('Technical indicators');
                 return { ...getMockTechnicals(upperTicker), _candles: null as { closes: number[]; highs: number[]; lows: number[] } | null };
             }
         })(),
         (async () => {
             try { return await fetchInsiderTrades(upperTicker, keys.finnhub); }
-            catch (err) { logger.error('phase1', 'Insider trades failed, using mock', err); return getMockInsiderActivity(upperTicker); }
+            catch (err) { logger.error('phase1', 'Insider trades failed, using mock', err); fallbacks.push('Insider trades'); return getMockInsiderActivity(upperTicker); }
         })(),
         (async () => {
             try { return await fetchEarningsSurprises(upperTicker, keys.finnhub); }
-            catch (err) { logger.error('phase1', 'Earnings failed, using mock', err); return getMockEarnings(upperTicker); }
+            catch (err) { logger.error('phase1', 'Earnings failed, using mock', err); fallbacks.push('Earnings data'); return getMockEarnings(upperTicker); }
         })(),
         (async () => {
             try { return await fetchPeers(upperTicker, keys.finnhub); }
-            catch (err) { logger.error('phase1', 'Peers failed, using mock', err); return getMockPeers(upperTicker); }
+            catch (err) { logger.error('phase1', 'Peers failed, using mock', err); fallbacks.push('Peer comparison'); return getMockPeers(upperTicker); }
         })(),
         (async () => {
             try { return await fetchSECFilings(upperTicker); }
-            catch (err) { logger.error('phase1', 'SEC filings failed', err); return { filings: getMockSECFilings(upperTicker), cik: null }; }
+            catch (err) { logger.error('phase1', 'SEC filings failed', err); fallbacks.push('SEC filings'); return { filings: getMockSECFilings(upperTicker), cik: null }; }
         })(),
         (async () => {
             try { return await fetchAnalystConsensus(upperTicker, keys.finnhub); }
@@ -329,6 +340,11 @@ async function phaseFetchData(upperTicker: string, keys: AnalysisKeys) {
         })(),
         (async () => {
             try { return await fetchInstitutionalOwnership(upperTicker, keys.finnhub); }
+            catch { return null; }
+        })(),
+        // Balance sheet data for real Altman Z-Score (non-fatal — falls back to estimates)
+        (async (): Promise<BalanceSheetData | null> => {
+            try { return await fetchBalanceSheet(upperTicker, keys.finnhub); }
             catch { return null; }
         })(),
     ]);
@@ -359,6 +375,8 @@ async function phaseFetchData(upperTicker: string, keys: AnalysisKeys) {
         analystConsensus,
         priceTarget,
         institutionalOwnership,
+        balanceSheet,
+        fallbacks,
     };
 }
 
@@ -371,9 +389,10 @@ function phaseCompute(
     risks: RiskFactor[],
     insiderActivity: InsiderActivity | null,
     earnings: EarningsData | null,
+    balanceSheet: BalanceSheetData | null,
 ) {
     const investmentScore = computeInvestmentScore(financials, technicals, sentiment, risks, insiderActivity, earnings);
-    const financialHealth = computeFinancialHealth(financials, candles?.closes ?? null);
+    const financialHealth = computeFinancialHealth(financials, candles?.closes ?? null, balanceSheet);
     const momentum = computeMomentum(candles?.closes ?? null, financials);
     const valueGrowth = computeValueGrowth(financials);
     const riskReward = computeRiskReward(financials, candles?.closes ?? null);
@@ -397,35 +416,37 @@ function phaseCompute(
 
 /** Phase 3: AI Synthesis (parallel Gemini calls) */
 async function phaseAISynth(financials: FinancialData, sentiment: SentimentResult, risks: RiskFactor[], catalysts: Catalyst[], keys: AnalysisKeys, upperTicker: string) {
+    const fallbacks: string[] = [];
     const [report, premiumInsights] = await Promise.all([
         (async () => {
             try { return await synthesizeReport(financials, sentiment, risks, catalysts, keys.gemini); }
-            catch (err) { logger.error('phase3', 'Gemini synthesis failed, using mock', err); return getMockReport(upperTicker); }
+            catch (err) { logger.error('phase3', 'Gemini synthesis failed, using mock', err); fallbacks.push('AI report (Gemini)'); return getMockReport(upperTicker); }
         })(),
         (async () => {
             try { return await generatePremiumInsights(financials, sentiment, risks, catalysts, keys.gemini); }
-            catch (err) { logger.warn('phase3', 'Premium insights failed (non-fatal)', { ticker: upperTicker }); return null; }
+            catch (err) { logger.warn('phase3', 'Premium insights failed (non-fatal)', { ticker: upperTicker }); fallbacks.push('Premium insights (Gemini)'); return null; }
         })(),
     ]);
-    return { report, premiumInsights };
+    return { report, premiumInsights, fallbacks };
 }
 
 /** Phase 4: Secondary AI opinions (parallel, non-fatal) */
 async function phaseSecondaryAI(financials: FinancialData, sentiment: SentimentResult, risks: RiskFactor[], catalysts: Catalyst[], report: string, keys: AnalysisKeys) {
+    const fallbacks: string[] = [];
     const [aiConsensus, audit] = await Promise.all([
         (async () => {
             if (keys.cerebras) {
                 try { return await generateSecondOpinion(financials, sentiment, risks, catalysts, report, keys.cerebras); }
-                catch (err) { logger.warn('phase4', 'Cerebras consensus failed (non-fatal)', { ticker: undefined }); return null; }
+                catch (err) { logger.warn('phase4', 'Cerebras consensus failed (non-fatal)', { ticker: undefined }); fallbacks.push('AI consensus (Cerebras)'); return null; }
             }
             return null;
         })(),
         (async () => {
             try { return await auditReport(report, financials, keys.cohere); }
-            catch (err) { logger.warn('phase4', 'Cohere audit failed (non-fatal)', { ticker: undefined }); return null; }
+            catch (err) { logger.warn('phase4', 'Cohere audit failed (non-fatal)', { ticker: undefined }); fallbacks.push('Fact audit (Cohere)'); return null; }
         })(),
     ]);
-    return { aiConsensus, audit };
+    return { aiConsensus, audit, fallbacks };
 }
 
 // ─── CORS Helper (with wildcard pattern support + CSP headers) ─────

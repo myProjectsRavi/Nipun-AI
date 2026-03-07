@@ -55,6 +55,16 @@ export default function ReportViewer() {
                 </div>
             )}
 
+            {/* Fallback indicator — shown when API calls failed and estimated data was used */}
+            {result.fallbacks && result.fallbacks.length > 0 && (
+                <div className="mb-4 rounded-xl border border-gold/30 bg-gold/10 px-5 py-3 text-sm text-gold" id="fallback-notice">
+                    <p className="font-semibold">⚠️ Some data sources were unavailable. Showing estimated values for:</p>
+                    <ul className="mt-1 ml-4 list-disc text-gold/80">
+                        {result.fallbacks.map((f, i) => <li key={i}>{f}</li>)}
+                    </ul>
+                </div>
+            )}
+
             <ScoreCards result={result} />
             <HealthScenarioCards result={result} />
             <MarketDataCards result={result} />

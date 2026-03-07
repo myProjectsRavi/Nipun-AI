@@ -11,14 +11,14 @@ export function HealthScenarioCards({ result }: { result: AnalysisResponse }) {
                 <SectionCard title="Financial Health" icon="🛡️" delay="0.1s">
                     <div className="grid grid-cols-2 gap-3 mb-3">
                         <div className={`rounded-xl border p-3 text-center ${result.financialHealth.altmanZone === 'safe' ? 'border-emerald/20 bg-emerald/5' : result.financialHealth.altmanZone === 'grey' ? 'border-gold/20 bg-gold/5' : 'border-rose/20 bg-rose/5'}`}>
-                            <div className="stat-label mb-0.5">Altman Z-Score</div>
+                            <div className="stat-label mb-0.5">{result.financialHealth.altmanIsEstimated ? 'Est. Altman Z-Score (simplified)' : 'Altman Z-Score'}</div>
                             <div className="font-mono text-xl font-bold text-white">{safe(result.financialHealth.altmanZScore).toFixed(2)}</div>
                             <div className={`text-base font-semibold uppercase ${result.financialHealth.altmanZone === 'safe' ? 'text-emerald' : result.financialHealth.altmanZone === 'grey' ? 'text-gold' : 'text-rose'}`}>
                                 {result.financialHealth.altmanZone === 'safe' ? '✓ Safe' : result.financialHealth.altmanZone === 'grey' ? '~ Grey' : '✗ Distress'}
                             </div>
                         </div>
                         <div className={`rounded-xl border p-3 text-center ${result.financialHealth.piotroskiRating === 'strong' ? 'border-emerald/20 bg-emerald/5' : result.financialHealth.piotroskiRating === 'moderate' ? 'border-gold/20 bg-gold/5' : 'border-rose/20 bg-rose/5'}`}>
-                            <div className="stat-label mb-0.5">Piotroski F-Score</div>
+                            <div className="stat-label mb-0.5">{result.financialHealth.piotroskiIsEstimated ? 'Est. Piotroski Score (proxy)' : 'Piotroski F-Score'}</div>
                             <div className="font-mono text-xl font-bold text-white">{result.financialHealth.piotroskiFScore}<span className="text-base text-white/90">/9</span></div>
                             <div className={`text-base font-semibold uppercase ${result.financialHealth.piotroskiRating === 'strong' ? 'text-emerald' : result.financialHealth.piotroskiRating === 'moderate' ? 'text-gold' : 'text-rose'}`}>
                                 {result.financialHealth.piotroskiRating}

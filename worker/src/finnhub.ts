@@ -1,4 +1,4 @@
-import type { FinancialData, TechnicalAnalysis, TechnicalSignal, InsiderTrade, InsiderActivity, EarningsSurprise, EarningsData, PeerMetrics, PeerComparison, AnalystConsensus, PriceTarget, InstitutionalOwnership, InstitutionalHolder } from './types';
+import type { FinancialData, TechnicalAnalysis, TechnicalSignal, InsiderTrade, InsiderActivity, EarningsSurprise, EarningsData, PeerMetrics, PeerComparison, AnalystConsensus, PriceTarget, InstitutionalOwnership, InstitutionalHolder, BalanceSheetData } from './types';
 
 const BASE = 'https://finnhub.io/api/v1';
 
@@ -52,6 +52,13 @@ export async function fetchFinancials(ticker: string, apiKey: string): Promise<F
         debtToEquity: (m['totalDebt/totalEquityQuarterly'] as number) ?? 0,
         dividendYield: (m['dividendYieldIndicatedAnnual'] as number) ?? 0,
         sector,
+        // Extended metrics from same API call (zero additional requests)
+        bookValuePerShare: (m['bookValuePerShareQuarterly'] as number) ?? 0,
+        currentRatioReported: (m['currentRatioQuarterly'] as number) ?? 0,
+        quickRatioReported: (m['quickRatioQuarterly'] as number) ?? 0,
+        roaTTM: (m['roaTTM'] as number) ?? 0,
+        operatingMarginReported: (m['operatingMarginTTM'] as number) ?? 0,
+        interestCoverageReported: (m['netInterestCoverageTTM'] as number) ?? 0,
     };
 }
 
@@ -454,4 +461,86 @@ function calculateMACD(closes: number[]): { macd: number; signal: number; histog
     const macd = macdLine[macdLine.length - 1];
     const signal = signalLine[signalLine.length - 1];
     return { macd, signal, histogram: macd - signal };
+}
+
+// ─── Balance Sheet (SEC-reported financial data) ───────────────────
+interface FinancialReportItem {
+    concept: string;
+    label: string;
+    value: number;
+    unit: string;
+}
+
+/**
+ * Fetch real balance sheet data from Finnhub financials-reported endpoint.
+ * Returns the most recent annual (10-K) filing data, or null if unavailable.
+ * Used to compute real Altman Z-Score instead of proxy estimates.
+ */
+export async function fetchBalanceSheet(ticker: string, apiKey: string): Promise<BalanceSheetData | null> {
+    const res = await fetch(
+        `${BASE}/stock/financials-reported?symbol=${encodeURIComponent(ticker)}&freq=annual&token=${apiKey}`
+    );
+
+    if (!res.ok) return null;
+
+    const json = (await res.json()) as {
+        data?: Array<{
+            report?: {
+                bs?: FinancialReportItem[];
+                ic?: FinancialReportItem[];
+            };
+        }>;
+    };
+
+    if (!json.data || json.data.length === 0) return null;
+
+    const latest = json.data[0];
+    const bs = latest.report?.bs || [];
+    const ic = latest.report?.ic || [];
+
+    // Match XBRL concepts by local name (handles us-gaap_, ifrs-full_ prefixes)
+    const findConcept = (items: FinancialReportItem[], ...names: string[]): number | null => {
+        for (const name of names) {
+            const found = items.find(
+                (i) => i.concept === name || i.concept.endsWith(`_${name}`)
+            );
+            if (found != null) return found.value;
+        }
+        return null;
+    };
+
+    const totalAssets = findConcept(bs, 'Assets');
+    const totalCurrentAssets = findConcept(bs, 'AssetsCurrent');
+    const totalCurrentLiabilities = findConcept(bs, 'LiabilitiesCurrent');
+    const totalLiabilities = findConcept(bs, 'Liabilities');
+    const retainedEarnings = findConcept(
+        bs,
+        'RetainedEarningsAccumulatedDeficit'
+    );
+    const stockholdersEquity = findConcept(
+        bs,
+        'StockholdersEquity',
+        'StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest'
+    );
+    const ebit = findConcept(ic, 'OperatingIncomeLoss');
+    const revenue = findConcept(
+        ic,
+        'Revenues',
+        'RevenueFromContractWithCustomerExcludingAssessedTax',
+        'SalesRevenueNet'
+    );
+
+    // Need at least totalAssets and totalLiabilities for Altman Z-Score
+    if (!totalAssets || !totalLiabilities) return null;
+
+    return {
+        totalAssets,
+        totalCurrentAssets: totalCurrentAssets || 0,
+        totalCurrentLiabilities: totalCurrentLiabilities || 0,
+        totalLiabilities,
+        retainedEarnings: retainedEarnings || 0,
+        ebit: ebit || 0,
+        totalRevenue: revenue || 0,
+        stockholdersEquity: stockholdersEquity || 0,
+    };
 }

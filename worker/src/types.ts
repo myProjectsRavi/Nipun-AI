@@ -5,6 +5,18 @@
  */
 export * from '../../shared/types';
 
+/** Real balance sheet data from Finnhub financials-reported endpoint */
+export interface BalanceSheetData {
+    totalAssets: number;
+    totalCurrentAssets: number;
+    totalCurrentLiabilities: number;
+    totalLiabilities: number;
+    retainedEarnings: number;
+    ebit: number;
+    totalRevenue: number;
+    stockholdersEquity: number;
+}
+
 // ─── Worker Environment (Cloudflare-only) ──────────────────────────
 export interface Env {
     ENVIRONMENT: string;

@@ -500,7 +500,9 @@ export function getMockFinancialHealth(ticker: string): FinancialHealth {
         interestCoverage: +(30 / (p.debtToEquity + 0.1)).toFixed(1),
         pricePositionPercent: +((p.price - p.weekLow52) / (p.weekHigh52 - p.weekLow52) * 100).toFixed(1),
         volatilityCategory: p.beta > 1.3 ? 'high' : p.beta > 0.9 ? 'moderate' : 'low',
-        healthSummary: `${z > 3 ? 'Excellent' : 'Adequate'} financial health — Altman Z ${z.toFixed(2)} (${z > 2.99 ? 'safe' : 'grey'} zone), Piotroski ${f}/9 (${f >= 7 ? 'strong' : 'moderate'}).`,
+        healthSummary: `${z > 3 ? 'Excellent' : 'Adequate'} financial health — Est. Altman Z ${z.toFixed(2)} (${z > 2.99 ? 'safe' : 'grey'} zone), Est. Piotroski ${f}/9 (${f >= 7 ? 'strong' : 'moderate'}).`,
+        altmanIsEstimated: true,
+        piotroskiIsEstimated: true,
     };
 }
 

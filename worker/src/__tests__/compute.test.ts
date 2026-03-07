@@ -283,6 +283,8 @@ describe('computeNipunScore', () => {
         currentRatio: 2, quickRatio: 1.6, interestCoverage: 10,
         pricePositionPercent: 60, volatilityCategory: 'moderate',
         healthSummary: '',
+        altmanIsEstimated: true,
+        piotroskiIsEstimated: true,
     });
 
     it('returns grade between A+ and F', () => {

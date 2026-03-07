@@ -7,7 +7,7 @@
         "lint:fix": "eslint . --fix",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
-        "test": "cd worker && npm test",
+        "test": "cd worker && npm test && cd ../frontend && npm test",
         "typecheck:frontend": "cd frontend && npx tsc --noEmit",
         "typecheck:worker": "cd worker && npx tsc --noEmit",
         "typecheck": "npm run typecheck:frontend && npm run typecheck:worker"
