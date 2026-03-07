@@ -1,6 +1,6 @@
 {
     "name": "nipun-ai",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "The Open-Source Bloomberg Alternative — 55+ data dimensions, 5 AI models, zero cost. Run locally with one command.",
     "bin": {
         "nipun-ai": "./bin/nipun-ai.js"
