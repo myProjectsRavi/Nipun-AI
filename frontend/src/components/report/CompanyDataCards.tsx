@@ -64,19 +64,21 @@ export function CompanyDataCards({ result }: { result: AnalysisResponse }) {
                     </SectionCard>
                 )}
 
-                <SectionCard title="Catalysts" icon="🚀" delay="0.85s">
-                    <div className="space-y-2">
-                        {result.catalysts.map((cat, i) => (
-                            <div key={i} className="rounded-xl border border-emerald/10 bg-emerald/[0.03] p-3">
-                                <div className="flex items-center justify-between mb-1">
-                                    <span className="badge-success">{cat.timeline}</span>
-                                    <span className="text-xs text-emerald/50 capitalize">{cat.impact}</span>
+                {result.catalysts.length > 0 && (
+                    <SectionCard title="Catalysts" icon="🚀" delay="0.85s">
+                        <div className="space-y-2">
+                            {result.catalysts.map((cat, i) => (
+                                <div key={i} className="rounded-xl border border-emerald/10 bg-emerald/[0.03] p-3">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="badge-success">{cat.timeline}</span>
+                                        <span className="text-xs text-emerald/50 capitalize">{cat.impact}</span>
+                                    </div>
+                                    <p className="text-sm text-white/70 leading-relaxed">{cat.description}</p>
                                 </div>
-                                <p className="text-sm text-white/70 leading-relaxed">{cat.description}</p>
-                            </div>
-                        ))}
-                    </div>
-                </SectionCard>
+                            ))}
+                        </div>
+                    </SectionCard>
+                )}
             </div>
 
             {/* ══════════ Analyst Consensus + Price Targets ══════════ */}

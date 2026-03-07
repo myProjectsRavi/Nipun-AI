@@ -298,7 +298,7 @@ Nipun AI follows a **Zero-Trust, Zero-Knowledge, BYOK** security model:
 - **Client-side encryption**: API keys encrypted with AES-256-GCM (PBKDF2, 100K iterations) before storage
 - **Header-only transmission**: Keys sent via `X-Nipun-Keys` header (base64-encoded), never in request body
 - **Stateless processing**: Worker processes keys in memory, never persists them
-- **Rate limiting**: 30 requests/hour per IP via `CF-Connecting-IP`
+- **Rate limiting**: 30 requests/hour per IP
 - **Input validation**: Ticker regex `^[A-Z0-9.]{1,10}$` prevents injection
 - **Security headers**: CSP, X-Content-Type-Options, X-Frame-Options on all responses
 - **Encrypted cache**: Analysis results encrypted in localStorage with AES-256-GCM

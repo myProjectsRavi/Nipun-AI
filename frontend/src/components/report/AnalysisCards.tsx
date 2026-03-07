@@ -16,6 +16,7 @@ export function AnalysisCards({ result }: { result: AnalysisResponse }) {
         { name: 'Bearish', value: result.sentiment.bearishPercent },
         { name: 'Neutral', value: result.sentiment.neutralPercent },
     ];
+    const hasSentimentData = sentimentData.some(d => d.value > 0);
 
     return (
         <>
@@ -53,16 +54,22 @@ export function AnalysisCards({ result }: { result: AnalysisResponse }) {
             <div className="mb-5 grid gap-4 lg:grid-cols-2">
                 <SectionCard title="Social Sentiment" icon="💬" delay="0.55s">
                     <div className="flex items-center gap-5">
-                        <div className="h-28 w-28 flex-shrink-0">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie data={sentimentData} cx="50%" cy="50%" innerRadius={32} outerRadius={50} paddingAngle={3} dataKey="value" strokeWidth={0}>
-                                        {sentimentData.map((_e, i) => <Cell key={i} fill={PIE_COLORS[i]} />)}
-                                    </Pie>
-                                    <Tooltip contentStyle={{ backgroundColor: '#1E293B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '11px' }} formatter={(v: number) => `${v}%`} />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </div>
+                        {hasSentimentData ? (
+                            <div className="h-28 w-28 flex-shrink-0">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie data={sentimentData} cx="50%" cy="50%" innerRadius={32} outerRadius={50} paddingAngle={3} dataKey="value" strokeWidth={0}>
+                                            {sentimentData.map((_e, i) => <Cell key={i} fill={PIE_COLORS[i]} />)}
+                                        </Pie>
+                                        <Tooltip contentStyle={{ backgroundColor: '#1E293B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', fontSize: '11px' }} formatter={(v: number) => `${v}%`} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                        ) : (
+                            <div className="h-28 w-28 flex-shrink-0 flex items-center justify-center rounded-full border border-white/10 bg-white/[0.02]">
+                                <span className="text-xs text-white/30 text-center">No data</span>
+                            </div>
+                        )}
                         <div className="flex-1 space-y-2">
                             {[
                                 { l: 'Bullish', v: result.sentiment.bullishPercent, c: 'bg-emerald', tc: 'text-emerald' },
