@@ -1,0 +1,72 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the form below.
+  - type: input
+    id: ticker
+    attributes:
+      label: Ticker
+      description: Which stock ticker were you analyzing?
+      placeholder: e.g., AAPL, MSFT, GOOGL
+    validations:
+      required: false
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      description: Were you using Demo Mode or Live Mode?
+      options:
+        - Demo Mode
+        - Live Mode (with API keys)
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the bug clearly. What did you expect to happen?
+      placeholder: "When I clicked Analyze on AAPL, the report showed..."
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce this bug?
+      placeholder: |
+        1. Open the app
+        2. Enter ticker "..."
+        3. Click "..."
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: errors
+    attributes:
+      label: Console errors
+      description: Open browser DevTools (F12 → Console tab) and paste any red error messages here.
+      render: shell
+    validations:
+      required: false
+  - type: input
+    id: browser
+    attributes:
+      label: Browser & version
+      placeholder: e.g., Chrome 120, Firefox 121, Safari 17
+    validations:
+      required: true
+  - type: dropdown
+    id: setup
+    attributes:
+      label: How are you running Nipun AI?
+      options:
+        - npx nipun-ai (local)
+        - Manual setup (git clone + setup.sh)
+        - Self-hosted on Cloudflare
+    validations:
+      required: true

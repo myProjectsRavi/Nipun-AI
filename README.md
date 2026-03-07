@@ -1,7 +1,7 @@
 # 🧠 Nipun AI — The Open-Source Bloomberg Alternative
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
-[![Infrastructure: Cloudflare Workers](https://img.shields.io/badge/Infra-Cloudflare_Workers-orange?style=for-the-badge&logo=cloudflare)](https://workers.cloudflare.com/)
+[![npm](https://img.shields.io/badge/npx-nipun--ai-cb3837?style=for-the-badge&logo=npm)](https://www.npmjs.com/package/nipun-ai)
 [![Security: AES-256-GCM](https://img.shields.io/badge/Security-AES--256--GCM-red?style=for-the-badge)](SECURITY.md)
 [![Zero Cost](https://img.shields.io/badge/Cost-$0%2Fmonth-brightgreen?style=for-the-badge)](https://github.com/myProjectsRavi/Nipun-AI)
 [![Tests](https://img.shields.io/badge/Tests-74_passing-brightgreen?style=for-the-badge)](https://github.com/myProjectsRavi/Nipun-AI)
@@ -141,7 +141,7 @@ DCF (10-year projected cash flows), Benjamin Graham Number (√(22.5 × EPS × B
 Your API keys are encrypted client-side with AES-256-GCM (PBKDF2, 100K iterations). Keys travel in encrypted headers, never stored on any server, exist only in memory for the duration of the request. See [SECURITY.md](SECURITY.md) for the full security model.
 
 ### 🏗️ Zero Infrastructure
-No servers. No databases. No Docker. No Kubernetes. Fork → `npx wrangler deploy` → Done. Runs entirely on Cloudflare's free tier (Workers + Pages).
+No servers. No databases. No Docker. No Kubernetes. Run locally with one command (`npx nipun-ai`) or deploy to any edge platform.
 
 ---
 
@@ -158,7 +158,7 @@ No servers. No databases. No Docker. No Kubernetes. Fork → `npx wrangler deplo
 └─────────────────────────┼──────────────────────────────────────┘
                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│              YOUR CLOUDFLARE WORKER (self-hosted, free tier)      │
+│              SERVERLESS API WORKER (runs locally or on edge)      │
 │                                                                 │
 │  Phase 1: phaseFetchData()     ← Finnhub, Reddit, SEC, Yahoo  │
 │  Phase 2: phaseCompute()       ← Zero API calls, pure math     │
@@ -234,7 +234,7 @@ Every analysis produces a comprehensive report with:
 
 | Layer | Technology | Why |
 |---|---|---|
-| **Runtime** | Cloudflare Workers | Edge compute, 330+ PoPs, near-zero cold start, free tier |
+| **Runtime** | Serverless Worker | Runs locally via `npx nipun-ai`, deployable to any edge platform |
 | **Frontend** | React 18 + Vite + TypeScript | Fast builds, type safety |
 | **State** | Zustand | Lightweight, no boilerplate |
 | **Styling** | Tailwind CSS | Utility-first, dark theme |
@@ -253,7 +253,7 @@ Nipun-AI/
 ├── cli/                      # npx nipun-ai CLI package (npm)
 ├── setup.sh                  # One-command setup (macOS/Linux)
 ├── setup.bat                 # One-command setup (Windows)
-├── frontend/                 # React SPA (Cloudflare Pages)
+├── frontend/                 # React SPA
 │   └── src/
 │       ├── App.tsx           # Landing page, nav, routing
 │       ├── store.ts          # Zustand state + analysis orchestration
@@ -265,7 +265,7 @@ Nipun-AI/
 │       │   └── ErrorBoundary.tsx  # React error boundary
 │       └── utils/
 │           └── crypto.ts     # AES-256-GCM encryption
-├── worker/                   # Cloudflare Worker (serverless API)
+├── worker/                   # Serverless API backend
 │   └── src/
 │       ├── index.ts          # Main handler, 4-phase pipeline
 │       ├── types.ts          # 30+ TypeScript interfaces
@@ -281,50 +281,12 @@ Nipun-AI/
 ├── shared/
 │   └── types.ts              # Single source of truth (450+ LOC)
 ├── .github/
+│   ├── ISSUE_TEMPLATE/        # Bug report + feature request forms
+│   ├── PULL_REQUEST_TEMPLATE.md
 │   └── workflows/ci.yml      # Lint + typecheck + tests on every PR
 ├── README.md
 ├── SECURITY.md
 └── CONTRIBUTING.md
-```
-
----
-
-## 🚀 Deployment
-
-### Cloudflare (Recommended - Free)
-
-**Worker:**
-```bash
-cd worker
-npm install
-# Edit wrangler.toml → set ALLOWED_ORIGINS to your Pages URL
-npx wrangler deploy
-```
-
-**Frontend:**
-```bash
-cd frontend
-npm install
-npm run build
-# Deploy to Cloudflare Pages via dashboard or:
-npx wrangler pages deploy dist
-```
-
-### Local Development
-
-**Quickest way** (runs both services):
-```bash
-./setup.sh        # macOS/Linux
-setup.bat         # Windows
-```
-
-**Manual** (two terminals):
-```bash
-# Terminal 1: Worker
-cd worker && npm install && npx wrangler dev
-
-# Terminal 2: Frontend
-cd frontend && npm install && npm run dev
 ```
 
 ---

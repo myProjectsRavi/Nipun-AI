@@ -115,12 +115,16 @@ Access-Control-Max-Age: 86400            # CORS preflight cache (24h)
 
 ## Reporting Security Issues
 
-If you discover a security vulnerability, please report it responsibly:
+If you discover a security vulnerability, please report it **privately**:
 
-1. **Do not** open a public GitHub issue with vulnerability details
-2. Open a [GitHub Issue](https://github.com/myProjectsRavi/Nipun-AI/issues/new) with the title `[SECURITY]` and a brief, non-exploitable description
-3. Include: description, steps to reproduce, and potential impact
-4. Confirmed vulnerabilities will be credited in the fix
+1. Go to the [**Security Advisories**](https://github.com/myProjectsRavi/Nipun-AI/security/advisories/new) page
+2. Click **"Report a vulnerability"**
+3. Fill in the details: description, steps to reproduce, and potential impact
+4. The report is **only visible to maintainers** — it will never be public until a fix is released
+
+> **⚠️ Do NOT open public GitHub issues for security vulnerabilities.** This protects users from potential exploits while we work on a fix.
+
+Confirmed vulnerabilities will be credited in the fix.
 
 ---
 

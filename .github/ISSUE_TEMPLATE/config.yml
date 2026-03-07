@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Security Vulnerability
+    url: https://github.com/myProjectsRavi/Nipun-AI/security/advisories/new
+    about: Report a security vulnerability privately (only visible to maintainers)
+  - name: 💬 Questions & Discussion
+    url: https://github.com/myProjectsRavi/Nipun-AI/discussions
+    about: Ask questions or start a discussion (not a bug or feature request)
