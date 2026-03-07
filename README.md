@@ -7,16 +7,9 @@
 [![Tests](https://img.shields.io/badge/Tests-74_passing-brightgreen?style=for-the-badge)](https://github.com/myProjectsRavi/Nipun-AI)
 [![Open Source](https://img.shields.io/badge/Open_Source-100%25-blueviolet?style=for-the-badge&logo=github)](https://github.com/myProjectsRavi/Nipun-AI)
 
-### 🚀 One-Click Deploy
-
-| Component | Deploy |
-|-----------|--------|
-| **Worker** (API) | [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/myProjectsRavi/Nipun-AI&authed=true&fields={"ALLOWED_ORIGINS":"*","ENVIRONMENT":"production"}&resourceType=workers&deploy-source=dir:worker) |
-| **Frontend** (UI) | [![Deploy to Cloudflare Pages](https://img.shields.io/badge/Deploy-Cloudflare%20Pages-orange?style=for-the-badge&logo=cloudflare)](https://dash.cloudflare.com/?to=/:account/pages/new/provider/github) |
-
 > **55+ data dimensions · 5 AI models · 3 valuation methods · Zero infrastructure — the institutional-grade financial analysis platform that costs $0/month.**
 
-Bloomberg charges $24,000/year. Nipun AI delivers comparable depth for **free** - deployable in under 5 minutes on Cloudflare's free tier with zero servers, zero databases, and zero maintenance.
+Bloomberg charges $24,000/year. Nipun AI delivers comparable depth for **free** — run locally with one command, no servers or databases needed.
 
 ---
 
