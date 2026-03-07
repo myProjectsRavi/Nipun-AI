@@ -6,8 +6,11 @@
 [![Zero Cost](https://img.shields.io/badge/Cost-$0%2Fmonth-brightgreen?style=for-the-badge)](https://github.com/myProjectsRavi/Nipun-AI)
 [![Tests](https://img.shields.io/badge/Tests-74_passing-brightgreen?style=for-the-badge)](https://github.com/myProjectsRavi/Nipun-AI)
 [![Open Source](https://img.shields.io/badge/Open_Source-100%25-blueviolet?style=for-the-badge&logo=github)](https://github.com/myProjectsRavi/Nipun-AI)
+[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-Try_Now-ff6b6b?style=for-the-badge)](https://nipun-ai.pages.dev/)
 
 > **55+ data dimensions · 5 AI models · 3 valuation methods · Zero infrastructure — the institutional-grade financial analysis platform that costs $0/month.**
+
+👉 **[Try the live demo instantly](https://nipun-ai.pages.dev/)** — no setup required, runs in your browser.
 
 Bloomberg charges $24,000/year. Nipun AI delivers comparable depth for **free** — run locally with one command, no servers or databases needed.
 
