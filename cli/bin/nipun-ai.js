@@ -63,7 +63,7 @@ function download(url, dest) {
 
 function openBrowser(url) {
     const cmd = platform() === 'darwin' ? 'open' :
-                platform() === 'win32' ? 'start' : 'xdg-open';
+        platform() === 'win32' ? 'start' : 'xdg-open';
     try { execSync(`${cmd} ${url}`, { stdio: 'ignore' }); } catch { /* ignore */ }
 }
 
@@ -101,19 +101,15 @@ async function main() {
     } else {
         step(2, 4, 'Downloading Nipun AI...');
 
-        const zipPath = join(homedir(), 'nipun-ai-download.zip');
+        let downloaded = false;
 
+        // Method 1: Try ZIP download (works for public repos, no git needed)
+        const zipPath = join(homedir(), 'nipun-ai-download.zip');
         try {
             await download(ZIP_URL, zipPath);
-        } catch (err) {
-            log(c.red(`❌ Download failed: ${err.message}`));
-            log(`   Check your internet connection and try again.`);
-            process.exit(1);
-        }
 
-        // Extract ZIP
-        log('   📦 Extracting...');
-        try {
+            // Extract ZIP
+            log('   📦 Extracting...');
             if (platform() === 'win32') {
                 execSync(`powershell -Command "Expand-Archive -Path '${zipPath}' -DestinationPath '${homedir()}' -Force"`, { stdio: 'pipe' });
             } else {
@@ -124,7 +120,6 @@ async function main() {
             const extractedDir = join(homedir(), 'Nipun-AI-main');
             if (existsSync(extractedDir)) {
                 if (existsSync(INSTALL_DIR)) {
-                    // Remove old install
                     execSync(platform() === 'win32'
                         ? `rmdir /s /q "${INSTALL_DIR}"`
                         : `rm -rf "${INSTALL_DIR}"`,
@@ -132,12 +127,38 @@ async function main() {
                 }
                 renameSync(extractedDir, INSTALL_DIR);
             }
-
-            // Clean up ZIP
             unlinkSync(zipPath);
-        } catch (err) {
-            log(c.red(`❌ Extraction failed: ${err.message}`));
-            log('   Make sure "unzip" is installed (macOS/Linux) or try again.');
+            downloaded = true;
+        } catch {
+            // ZIP failed (likely private repo) — clean up and try git
+            try { unlinkSync(zipPath); } catch { /* */ }
+        }
+
+        // Method 2: Fallback to git clone
+        if (!downloaded) {
+            log(c.dim('   ZIP download unavailable — trying git clone...'));
+            const hasGit = run('git --version', process.cwd());
+            if (hasGit) {
+                try {
+                    execSync(`git clone https://github.com/${REPO}.git "${INSTALL_DIR}"`, {
+                        stdio: 'pipe',
+                    });
+                    downloaded = true;
+                } catch {
+                    // git clone also failed
+                }
+            }
+        }
+
+        if (!downloaded) {
+            log(c.red('❌ Could not download Nipun AI.'));
+            log('');
+            log('   This usually means the repository is private.');
+            log('   You can set it up manually instead:');
+            log('');
+            log(c.cyan('   git clone https://github.com/myProjectsRavi/Nipun-AI.git ~/nipun-ai'));
+            log(c.cyan('   cd ~/nipun-ai && bash setup.sh'));
+            log('');
             process.exit(1);
         }
 
@@ -239,7 +260,7 @@ async function main() {
     process.on('SIGTERM', cleanup);
 
     // Keep alive
-    await new Promise(() => {});
+    await new Promise(() => { });
 }
 
 main().catch((err) => {
