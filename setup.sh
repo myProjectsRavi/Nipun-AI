@@ -26,13 +26,13 @@ echo -e "${YELLOW}[1/4]${NC} Checking prerequisites..."
 
 if ! command -v node &>/dev/null; then
     echo -e "${RED}❌ Node.js is required but not installed.${NC}"
-    echo "   Install it from: https://nodejs.org (LTS recommended)"
+    echo "   Install Node.js 22 or newer from: https://nodejs.org"
     exit 1
 fi
 
 NODE_VERSION=$(node -v | sed 's/v//' | cut -d. -f1)
-if [ "$NODE_VERSION" -lt 18 ]; then
-    echo -e "${RED}❌ Node.js 18+ required. You have $(node -v).${NC}"
+if [ "$NODE_VERSION" -lt 22 ]; then
+    echo -e "${RED}❌ Node.js 22+ required. You have $(node -v).${NC}"
     echo "   Update from: https://nodejs.org"
     exit 1
 fi
@@ -59,15 +59,15 @@ else
     echo -e "${YELLOW}[2/4]${NC} Already in Nipun AI directory — skipping clone."
 fi
 
-# ─── 3. Install dependencies ───────────────────────────────────────
+# ─── 3. Install dependencies ────────────────────────────────────────
 echo ""
-echo -e "${YELLOW}[3/4]${NC} Installing dependencies (this takes ~30 seconds)..."
+echo -e "${YELLOW}[3/4]${NC} Installing dependencies from lockfiles..."
 
 echo "   📦 Worker..."
-(cd worker && npm install --silent 2>&1) || { echo -e "${RED}❌ Worker install failed${NC}"; exit 1; }
+(cd worker && npm ci --no-fund) || { echo -e "${RED}❌ Worker install failed${NC}"; exit 1; }
 
 echo "   📦 Frontend..."
-(cd frontend && npm install --silent 2>&1) || { echo -e "${RED}❌ Frontend install failed${NC}"; exit 1; }
+(cd frontend && npm ci --no-fund) || { echo -e "${RED}❌ Frontend install failed${NC}"; exit 1; }
 
 echo -e "   ✅ All dependencies installed."
 
@@ -76,11 +76,8 @@ echo ""
 echo -e "${YELLOW}[4/4]${NC} Starting Nipun AI..."
 echo ""
 
-# Kill anything already using these ports (prevents "Address already in use" on re-runs)
-echo -e "   Freeing ports 8787 and 5173..."
-lsof -ti:8787 | xargs kill -9 2>/dev/null || true
-lsof -ti:5173 | xargs kill -9 2>/dev/null || true
-sleep 1
+echo "   Default ports: frontend 5173 · worker 8787"
+echo "   This script never terminates existing processes. If a port is busy, stop the owning process or use the recommended npm launcher: npx nipun-ai@latest"
 
 # Start worker in background
 (cd worker && npx wrangler dev --port 8787 2>&1 &)
@@ -92,7 +89,7 @@ sleep 2
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo -e "${GREEN}✅ Nipun AI is running!${NC}"
+echo -e "${GREEN}✅ Nipun AI startup commands launched.${NC}"
 echo ""
 echo -e "   🌐 Frontend: ${CYAN}http://localhost:5173${NC}"
 echo -e "   ⚙️  Worker:   ${CYAN}http://localhost:8787${NC}"
@@ -109,9 +106,6 @@ echo "   • Groq:     https://console.groq.com"
 echo "   • Cohere:   https://dashboard.cohere.com"
 echo "   • Cerebras: https://cloud.cerebras.ai (optional)"
 echo ""
-echo "   Press Ctrl+C to stop both services."
+echo "   Close the started development processes to stop Nipun AI."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-
-# Wait for background processes
-wait
