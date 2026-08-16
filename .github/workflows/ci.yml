@@ -21,6 +21,7 @@ jobs:
                   cache: npm
                   cache-dependency-path: package-lock.json
             - run: npm ci
+            - run: npm audit --audit-level=high
             - run: npx eslint .
             - run: npx prettier --check .
 
@@ -38,6 +39,7 @@ jobs:
                   cache: npm
                   cache-dependency-path: ${{ matrix.package }}/package-lock.json
             - run: cd ${{ matrix.package }} && npm ci
+            - run: cd ${{ matrix.package }} && npm audit --audit-level=high
             - run: cd ${{ matrix.package }} && npx tsc --noEmit
 
     test:
@@ -90,6 +92,9 @@ jobs:
             - name: Install CLI package metadata
               working-directory: cli
               run: npm ci
+            - name: Audit CLI package metadata
+              working-directory: cli
+              run: npm audit --audit-level=high
             - name: Run CLI tests and syntax checks
               working-directory: cli
               run: npm run check
