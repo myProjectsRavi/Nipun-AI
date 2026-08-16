@@ -1,12 +1,20 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-import { findAvailablePort, isReleaseReady, managedRoot, releaseArchiveUrl, releaseInstallDir, releaseTagForVersion } from '../lib/cli.js';
+import {
+    findAvailablePort,
+    internals,
+    isReleaseReady,
+    managedRoot,
+    releaseArchiveUrl,
+    releaseInstallDir,
+    releaseTagForVersion,
+} from '../lib/cli.js';
 
 const CLI_BIN = fileURLToPath(new URL('../bin/nipun-ai.js', import.meta.url));
 
@@ -34,6 +42,63 @@ test('release readiness requires a matching marker and lockfile digests', () => 
     writeFileSync(join(installDir, 'worker', 'package-lock.json'), '{"lockfileVersion":3}\n');
     writeFileSync(join(installDir, 'frontend', 'package-lock.json'), '{"lockfileVersion":3}\n');
     assert.equal(isReleaseReady(installDir, '2.0.0'), false);
+    rmSync(home, { recursive: true, force: true });
+});
+
+test('concurrent first installs serialize and never expose or delete a partial release', async () => {
+    const home = mkdtempSync(join(tmpdir(), 'nipun-ai-concurrent-home-'));
+    const version = '2.0.0';
+    const finalDir = releaseInstallDir(version, home);
+    let stageCalls = 0;
+    let installCalls = 0;
+    let finalVisibleDuringInstall = false;
+
+    const stageReleaseFn = async (tempRoot) => {
+        stageCalls += 1;
+        const staged = join(tempRoot, 'repo');
+        mkdirSync(join(staged, 'worker'), { recursive: true });
+        mkdirSync(join(staged, 'frontend'), { recursive: true });
+        writeFileSync(join(staged, 'worker', 'package-lock.json'), '{"lockfileVersion":3}\n');
+        writeFileSync(join(staged, 'frontend', 'package-lock.json'), '{"lockfileVersion":3}\n');
+        return staged;
+    };
+
+    const installDependenciesFn = async (staged) => {
+        installCalls += 1;
+        finalVisibleDuringInstall ||= existsSync(finalDir);
+        await new Promise((resolve) => setTimeout(resolve, 80));
+        assert.equal(existsSync(join(staged, 'worker', 'package-lock.json')), true);
+        assert.equal(existsSync(join(staged, 'frontend', 'package-lock.json')), true);
+        mkdirSync(join(staged, 'worker', 'node_modules'), { recursive: true });
+        mkdirSync(join(staged, 'frontend', 'node_modules'), { recursive: true });
+    };
+
+    const options = {
+        version,
+        home,
+        stageReleaseFn,
+        installDependenciesFn,
+        lockPollMs: 10,
+    };
+
+    const first = internals.ensureReleaseInstalledWith(options);
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    const second = internals.ensureReleaseInstalledWith(options);
+    const results = await Promise.all([first, second]);
+
+    assert.equal(stageCalls, 1);
+    assert.equal(installCalls, 1);
+    assert.equal(finalVisibleDuringInstall, false);
+    assert.deepEqual(
+        results.map((result) => result.installed).sort(),
+        [false, true],
+    );
+    assert.equal(isReleaseReady(finalDir, version), true);
+    assert.equal(
+        readdirSync(managedRoot(home)).some((name) => name.startsWith(`.install-${version}-`)),
+        false,
+    );
+    rmSync(home, { recursive: true, force: true });
 });
 
 test('findAvailablePort skips an occupied port without terminating its owner', async () => {

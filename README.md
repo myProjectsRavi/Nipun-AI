@@ -36,11 +36,16 @@ brew install node
 winget install OpenJS.NodeJS.LTS
 ```
 
-**🐧 Linux** — Open Terminal (`Ctrl+Alt+T`), then:
+**🐧 Linux** — Install **Node.js 22 or newer** using the official [Node.js download page](https://nodejs.org/en/download) or a version manager that explicitly installs Node 22+. Do not rely on a distro's default `nodejs` package without checking its major version.
+
+Verify before continuing:
 
 ```bash
-sudo apt update && sudo apt install -y nodejs npm
+node --version
+npm --version
 ```
+
+`node --version` must report `v22.x.x` or newer.
 
 ### Step 2 — Launch Nipun AI
 

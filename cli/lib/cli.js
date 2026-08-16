@@ -1,10 +1,10 @@
-import { createHash } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { createWriteStream } from 'fs';
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'fs';
 import https from 'https';
 import net from 'net';
 import { homedir, platform } from 'os';
-import { dirname, join, resolve, sep } from 'path';
+import { join, resolve, sep } from 'path';
 import { fileURLToPath } from 'url';
 import { execFileSync, spawn } from 'child_process';
 
@@ -16,6 +16,10 @@ const DEFAULT_FRONTEND_PORT = 5173;
 const PORT_SCAN_LIMIT = 20;
 const STARTUP_TIMEOUT_MS = 45_000;
 const INSTALL_MARKER = '.nipun-ai-install.json';
+const INSTALL_LOCK_OWNER = 'owner.json';
+const INSTALL_LOCK_TIMEOUT_MS = 10 * 60 * 1000;
+const INSTALL_LOCK_POLL_MS = 200;
+const INSTALL_LOCK_OWNER_GRACE_MS = 5_000;
 const PACKAGE_PATH = fileURLToPath(new URL('../package.json', import.meta.url));
 const PACKAGE = JSON.parse(readFileSync(PACKAGE_PATH, 'utf8'));
 const CLI_VERSION = PACKAGE.version;
@@ -63,6 +67,10 @@ function log(message = '') {
 
 function step(number, total, message) {
     log(`${colors.yellow(`[${number}/${total}]`)} ${message}`);
+}
+
+function delay(ms) {
+    return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
 }
 
 function commandExists(command) {
@@ -115,6 +123,106 @@ function safeRemove(targetPath, home = homedir()) {
     if (!existsSync(targetPath)) return;
     assertInsideManagedRoot(targetPath, home);
     rmSync(targetPath, { recursive: true, force: true });
+}
+
+function readInstallLockOwner(lockDir) {
+    try {
+        return JSON.parse(readFileSync(join(lockDir, INSTALL_LOCK_OWNER), 'utf8'));
+    } catch {
+        return null;
+    }
+}
+
+function processExists(pid) {
+    if (!Number.isInteger(pid) || pid <= 0) return false;
+    try {
+        process.kill(pid, 0);
+        return true;
+    } catch (error) {
+        if (error?.code === 'EPERM') return true;
+        if (error?.code === 'ESRCH') return false;
+        return true;
+    }
+}
+
+function removeAbandonedInstallLock(lockDir, home) {
+    if (!existsSync(lockDir)) return true;
+
+    const owner = readInstallLockOwner(lockDir);
+    if (owner && Number.isInteger(owner.pid) && owner.pid > 0) {
+        if (processExists(owner.pid)) return false;
+        safeRemove(lockDir, home);
+        return true;
+    }
+
+    try {
+        if (Date.now() - statSync(lockDir).mtimeMs < INSTALL_LOCK_OWNER_GRACE_MS) return false;
+    } catch {
+        return true;
+    }
+
+    safeRemove(lockDir, home);
+    return true;
+}
+
+async function acquireInstallLock({
+    version = CLI_VERSION,
+    home = homedir(),
+    timeoutMs = INSTALL_LOCK_TIMEOUT_MS,
+    pollMs = INSTALL_LOCK_POLL_MS,
+} = {}) {
+    releaseTagForVersion(version);
+    const root = managedRoot(home);
+    const locksDir = join(root, 'locks');
+    const lockDir = join(locksDir, version);
+    mkdirSync(locksDir, { recursive: true, mode: 0o700 });
+    const deadline = Date.now() + timeoutMs;
+
+    while (true) {
+        try {
+            mkdirSync(lockDir, { mode: 0o700 });
+            const owner = {
+                token: randomUUID(),
+                pid: process.pid,
+                createdAt: new Date().toISOString(),
+            };
+            const ownerPath = join(lockDir, INSTALL_LOCK_OWNER);
+            try {
+                writeFileSync(ownerPath, `${JSON.stringify(owner, null, 2)}\n`, { mode: 0o600 });
+                try {
+                    chmodSync(ownerPath, 0o600);
+                } catch {
+                    // Windows ACLs are managed by the OS; chmod may be a no-op.
+                }
+            } catch (error) {
+                safeRemove(lockDir, home);
+                throw error;
+            }
+
+            let released = false;
+            return () => {
+                if (released) return;
+                released = true;
+                const currentOwner = readInstallLockOwner(lockDir);
+                if (currentOwner?.token === owner.token) safeRemove(lockDir, home);
+            };
+        } catch (error) {
+            if (error?.code !== 'EEXIST') throw error;
+        }
+
+        if (removeAbandonedInstallLock(lockDir, home)) continue;
+        if (Date.now() >= deadline) {
+            throw new Error(`Timed out waiting for another ${releaseTagForVersion(version)} installation to finish. Retry the command.`);
+        }
+        await delay(pollMs);
+    }
+}
+
+function cleanupVersionStaging(root, version, home) {
+    const prefix = `.install-${version}-`;
+    for (const name of readdirSync(root)) {
+        if (name.startsWith(prefix)) safeRemove(join(root, name), home);
+    }
 }
 
 function sha256File(path) {
@@ -304,7 +412,13 @@ function installDependencies(installDir) {
     }
 }
 
-export async function ensureReleaseInstalled({ version = CLI_VERSION, home = homedir() } = {}) {
+async function ensureReleaseInstalledWith({
+    version = CLI_VERSION,
+    home = homedir(),
+    stageReleaseFn = stageRelease,
+    installDependenciesFn = installDependencies,
+    lockPollMs = INSTALL_LOCK_POLL_MS,
+} = {}) {
     const root = managedRoot(home);
     const releasesDir = join(root, 'releases');
     const installDir = releaseInstallDir(version, home);
@@ -314,29 +428,48 @@ export async function ensureReleaseInstalled({ version = CLI_VERSION, home = hom
         return { installDir, installed: false };
     }
 
-    if (existsSync(installDir)) {
-        safeRemove(installDir, home);
-    }
-
-    const tempRoot = mkdtempSync(join(root, '.install-'));
+    const releaseLock = await acquireInstallLock({ version, home, pollMs: lockPollMs });
+    let tempRoot;
     try {
-        const staged = await stageRelease(tempRoot, version);
-        const stagedParent = dirname(staged);
-        renameSync(staged, installDir);
-        if (stagedParent !== tempRoot && existsSync(stagedParent)) {
-            rmSync(stagedParent, { recursive: true, force: true });
+        if (isReleaseReady(installDir, version)) {
+            return { installDir, installed: false };
         }
-        installDependencies(installDir);
-        writeInstallationMarker(installDir, version);
+
+        if (existsSync(installDir)) {
+            safeRemove(installDir, home);
+        }
+
+        cleanupVersionStaging(root, version, home);
+        tempRoot = mkdtempSync(join(root, `.install-${version}-`));
+        const staged = await stageReleaseFn(tempRoot, version);
+        const tempRootResolved = resolve(tempRoot);
+        const stagedResolved = resolve(staged);
+        if (stagedResolved === tempRootResolved || !stagedResolved.startsWith(`${tempRootResolved}${sep}`)) {
+            throw new Error('Refusing to install a staged release from outside the managed staging directory');
+        }
+
+        await installDependenciesFn(staged);
+        writeInstallationMarker(staged, version);
+        if (!isReleaseReady(staged, version)) {
+            throw new Error(`Staged release ${releaseTagForVersion(version)} failed verification`);
+        }
+
+        if (existsSync(installDir)) {
+            safeRemove(installDir, home);
+        }
+        renameSync(staged, installDir);
         return { installDir, installed: true };
-    } catch (error) {
-        safeRemove(installDir, home);
-        throw error;
     } finally {
-        if (existsSync(tempRoot)) {
-            safeRemove(tempRoot, home);
+        try {
+            if (tempRoot && existsSync(tempRoot)) safeRemove(tempRoot, home);
+        } finally {
+            releaseLock();
         }
     }
+}
+
+export async function ensureReleaseInstalled({ version = CLI_VERSION, home = homedir() } = {}) {
+    return ensureReleaseInstalledWith({ version, home });
 }
 
 function canListen(port, host = '127.0.0.1') {
@@ -395,7 +528,7 @@ async function waitForHttp(url, processInfo, timeoutMs = STARTUP_TIMEOUT_MS) {
         } catch {
             // Not ready yet.
         }
-        await new Promise((resolvePromise) => setTimeout(resolvePromise, 350));
+        await delay(350);
     }
     throw new Error(`Timed out waiting for ${url}.\n${tail(processInfo.output())}`);
 }
@@ -594,4 +727,6 @@ export const internals = Object.freeze({
     CLI_VERSION,
     DEFAULT_WORKER_PORT,
     DEFAULT_FRONTEND_PORT,
+    acquireInstallLock,
+    ensureReleaseInstalledWith,
 });
