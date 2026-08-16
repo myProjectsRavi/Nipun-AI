@@ -24,6 +24,11 @@ jobs:
             - run: npm audit --audit-level=high
             - run: npx eslint .
             - run: npx prettier --check .
+            - name: Show exact Prettier diff for CLI regression test
+              if: failure()
+              run: |
+                  npx prettier cli/test/cli.test.js > "$RUNNER_TEMP/prettier-cli-test.js"
+                  diff -u cli/test/cli.test.js "$RUNNER_TEMP/prettier-cli-test.js" || true
 
     typecheck:
         name: Type Check
