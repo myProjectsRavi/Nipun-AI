@@ -64,10 +64,6 @@ jobs:
                   tests = Path('cli/test/cli.test.js')
                   text = tests.read_text()
                   text = text.replace(
-                      "import { join } from 'node:path';",
-                      "import { join } from 'node:path';",
-                  )
-                  text = text.replace(
                       "    assert.equal(managedRoot('/home/example'), '/home/example/.nipun-ai');\n    assert.equal(releaseInstallDir('2.0.0', '/home/example'), '/home/example/.nipun-ai/releases/2.0.0');",
                       "    const home = join('example-home');\n    assert.equal(managedRoot(home), join(home, '.nipun-ai'));\n    assert.equal(releaseInstallDir('2.0.0', home), join(home, '.nipun-ai', 'releases', '2.0.0'));",
                       1,
@@ -123,11 +119,27 @@ jobs:
                   npm audit --audit-level=high
                   npm run check
                   cd ..
-                  git diff --check
+                  git diff --check -- \
+                    README.md \
+                    CONTRIBUTING.md \
+                    setup.bat \
+                    cli \
+                    .github/workflows/ci.yml \
+                    .github/workflows/publish-npm.yml \
+                    .github/workflows/release-hardening-finalize.yml \
+                    .github/ISSUE_TEMPLATE/bug_report.yml
 
             - name: Commit final integration fixes
               run: |
-                  if git diff --quiet; then
+                  if git diff --quiet -- \
+                    README.md \
+                    CONTRIBUTING.md \
+                    setup.bat \
+                    cli \
+                    .github/workflows/ci.yml \
+                    .github/workflows/publish-npm.yml \
+                    .github/workflows/release-hardening-finalize.yml \
+                    .github/ISSUE_TEMPLATE/bug_report.yml; then
                     echo "No final integration changes were needed."
                     exit 0
                   fi
