@@ -17,7 +17,7 @@ REM ─── 1. Check prerequisites ──────────────�
 echo [1/4] Checking prerequisites...
 
 where node >nul 2>&1
-if %ERRORLEVEL% neq 0 (
+if errorlevel 1 (
     echo.
     echo ERROR: Node.js 22 or newer is required but not installed.
     echo        Download from: https://nodejs.org
@@ -38,7 +38,7 @@ if !NODE_MAJOR! LSS 22 (
 )
 
 where npm >nul 2>&1
-if %ERRORLEVEL% neq 0 (
+if errorlevel 1 (
     echo.
     echo ERROR: npm is required but not installed.
     echo        It comes with Node.js: https://nodejs.org
@@ -53,7 +53,7 @@ REM ─── 2. Clone if needed ───────────────�
 echo.
 if exist "package.json" (
     findstr /c:"nipun-ai" package.json >nul 2>&1
-    if %ERRORLEVEL% equ 0 (
+    if not errorlevel 1 (
         echo [2/4] Already in Nipun AI directory - skipping clone.
         goto :install
     )
@@ -61,7 +61,7 @@ if exist "package.json" (
 
 echo [2/4] Cloning Nipun AI...
 where git >nul 2>&1
-if %ERRORLEVEL% neq 0 (
+if errorlevel 1 (
     echo.
     echo ERROR: Git is required. Install from: https://git-scm.com
     echo.
@@ -69,7 +69,7 @@ if %ERRORLEVEL% neq 0 (
     exit /b 1
 )
 git clone https://github.com/myProjectsRavi/Nipun-AI.git
-if %ERRORLEVEL% neq 0 (
+if errorlevel 1 (
     echo ERROR: Git clone failed.
     pause
     exit /b 1
@@ -84,7 +84,7 @@ echo [3/4] Installing dependencies from lockfiles...
 echo    Installing Worker dependencies...
 cd worker
 call npm ci --no-fund
-if %ERRORLEVEL% neq 0 (
+if errorlevel 1 (
     echo ERROR: Worker install failed.
     pause
     exit /b 1
@@ -94,7 +94,7 @@ cd ..
 echo    Installing Frontend dependencies...
 cd frontend
 call npm ci --no-fund
-if %ERRORLEVEL% neq 0 (
+if errorlevel 1 (
     echo ERROR: Frontend install failed.
     pause
     exit /b 1

@@ -31,11 +31,11 @@ For the end-user one-command launcher, use `npx nipun-ai@latest` rather than a d
 
 ## Project Structure
 
-| Directory | Purpose | Language |
-|---|---|---|
-| `frontend/src/` | React SPA (Cloudflare Pages) | TypeScript + React |
-| `worker/src/` | Cloudflare Worker API | TypeScript |
-| `cli/` | Published `nipun-ai` npm launcher | JavaScript (ES modules) |
+| Directory       | Purpose                           | Language                |
+| --------------- | --------------------------------- | ----------------------- |
+| `frontend/src/` | React SPA (Cloudflare Pages)      | TypeScript + React      |
+| `worker/src/`   | Cloudflare Worker API             | TypeScript              |
+| `cli/`          | Published `nipun-ai` npm launcher | JavaScript (ES modules) |
 
 ---
 
@@ -45,7 +45,7 @@ For the end-user one-command launcher, use `npx nipun-ai@latest` rather than a d
 
 - **TypeScript**: Strict mode, no `any` types (use proper interfaces from `types.ts`)
 - **Formatting**: Use the repository Prettier configuration and keep CI green
-- **Comments**: Document *why*, not *what* — the code should be self-explanatory
+- **Comments**: Document _why_, not _what_ — the code should be self-explanatory
 - **Naming**: `camelCase` for variables/functions, `PascalCase` for types/components
 
 ### Architecture Principles

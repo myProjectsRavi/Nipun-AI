@@ -4,14 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
-import {
-    findAvailablePort,
-    isReleaseReady,
-    managedRoot,
-    releaseArchiveUrl,
-    releaseInstallDir,
-    releaseTagForVersion,
-} from '../lib/cli.js';
+import { findAvailablePort, isReleaseReady, managedRoot, releaseArchiveUrl, releaseInstallDir, releaseTagForVersion } from '../lib/cli.js';
 
 test('release tag is derived from the npm package version', () => {
     assert.equal(releaseTagForVersion('2.0.0'), 'v2.0.0');
@@ -20,15 +13,13 @@ test('release tag is derived from the npm package version', () => {
 });
 
 test('release archive URL is HTTPS and points to an immutable version tag', () => {
-    assert.equal(
-        releaseArchiveUrl('2.0.0'),
-        'https://github.com/myProjectsRavi/Nipun-AI/archive/refs/tags/v2.0.0.tar.gz',
-    );
+    assert.equal(releaseArchiveUrl('2.0.0'), 'https://github.com/myProjectsRavi/Nipun-AI/archive/refs/tags/v2.0.0.tar.gz');
 });
 
 test('managed install paths never reuse the legacy ~/nipun-ai checkout', () => {
-    assert.equal(managedRoot('/home/example'), '/home/example/.nipun-ai');
-    assert.equal(releaseInstallDir('2.0.0', '/home/example'), '/home/example/.nipun-ai/releases/2.0.0');
+    const home = join('example-home');
+    assert.equal(managedRoot(home), join(home, '.nipun-ai'));
+    assert.equal(releaseInstallDir('2.0.0', home), join(home, '.nipun-ai', 'releases', '2.0.0'));
 });
 
 test('release readiness requires a matching marker and lockfile digests', () => {
