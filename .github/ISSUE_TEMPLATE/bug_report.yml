@@ -7,6 +7,7 @@ body:
     attributes:
       value: |
         Thanks for taking the time to report a bug! Please fill out the form below.
+        Never include API keys, access tokens, private keys, cookies, or other secrets in a public issue.
   - type: input
     id: ticker
     attributes:
@@ -22,7 +23,7 @@ body:
       description: Were you using Demo Mode or Live Mode?
       options:
         - Demo Mode
-        - Live Mode (with API keys)
+        - Live Mode (with API keys; do not paste the keys)
     validations:
       required: true
   - type: textarea
@@ -49,7 +50,7 @@ body:
     id: errors
     attributes:
       label: Console errors
-      description: Open browser DevTools (F12 → Console tab) and paste any red error messages here.
+      description: Open browser DevTools (F12 → Console tab) and paste relevant red error messages here after removing any secrets or personal data.
       render: shell
     validations:
       required: false
@@ -57,7 +58,7 @@ body:
     id: browser
     attributes:
       label: Browser & version
-      placeholder: e.g., Chrome 120, Firefox 121, Safari 17
+      placeholder: e.g., Chrome 145, Firefox 147, Safari 26
     validations:
       required: true
   - type: dropdown
@@ -65,7 +66,7 @@ body:
     attributes:
       label: How are you running Nipun AI?
       options:
-        - npx nipun-ai (local)
+        - npx nipun-ai@latest (local)
         - Manual setup (git clone + setup.sh)
         - Self-hosted on Cloudflare
     validations:
