@@ -1,10 +1,14 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import { findAvailablePort, isReleaseReady, managedRoot, releaseArchiveUrl, releaseInstallDir, releaseTagForVersion } from '../lib/cli.js';
+
+const CLI_BIN = fileURLToPath(new URL('../bin/nipun-ai.js', import.meta.url));
 
 test('release tag is derived from the npm package version', () => {
     assert.equal(releaseTagForVersion('2.0.0'), 'v2.0.0');
@@ -41,4 +45,13 @@ test('findAvailablePort skips an occupied port without terminating its owner', a
     assert.notEqual(selected, occupied);
     assert.equal(server.listening, true);
     await new Promise((resolve) => server.close(resolve));
+});
+
+test('--doctor never echoes arbitrary secret-like environment values', () => {
+    const sentinel = 'NIPUN_TEST_SECRET_DO_NOT_PRINT_7d7f7dbf';
+    const output = execFileSync(process.execPath, [CLI_BIN, '--doctor'], {
+        encoding: 'utf8',
+        env: { ...process.env, NIPUN_TEST_SECRET: sentinel },
+    });
+    assert.equal(output.includes(sentinel), false);
 });
