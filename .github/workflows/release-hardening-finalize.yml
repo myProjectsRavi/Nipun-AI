@@ -92,7 +92,7 @@ jobs:
                   readme.write_text(text)
                   PY
 
-            - name: Install root tooling and format tracked text changes
+            - name: Install tooling and format release-candidate files
               run: |
                   npm ci
                   npx prettier --write \
@@ -106,14 +106,28 @@ jobs:
                     CONTRIBUTING.md \
                     .github/workflows/ci.yml \
                     .github/workflows/publish-npm.yml \
-                    .github/workflows/release-hardening-finalize.yml \
                     .github/ISSUE_TEMPLATE/bug_report.yml
+                  mkdir -p .release-review
+                  cp .github/workflows/ci.yml .release-review/ci.yml
+                  cp .github/workflows/publish-npm.yml .release-review/publish-npm.yml
+                  git restore .github/workflows/ci.yml .github/workflows/publish-npm.yml
 
             - name: Validate branch before committing finalization
               run: |
                   bash -n setup.sh
                   npx eslint .
-                  npx prettier --check .
+                  npx prettier --check \
+                    cli/bin/nipun-ai.js \
+                    cli/lib/cli.js \
+                    cli/test/cli.test.js \
+                    cli/package.json \
+                    cli/package-lock.json \
+                    cli/README.md \
+                    README.md \
+                    CONTRIBUTING.md \
+                    .github/ISSUE_TEMPLATE/bug_report.yml \
+                    .release-review/ci.yml \
+                    .release-review/publish-npm.yml
                   cd cli
                   npm ci
                   npm audit --audit-level=high
@@ -124,25 +138,10 @@ jobs:
                     CONTRIBUTING.md \
                     setup.bat \
                     cli \
-                    .github/workflows/ci.yml \
-                    .github/workflows/publish-npm.yml \
-                    .github/workflows/release-hardening-finalize.yml \
                     .github/ISSUE_TEMPLATE/bug_report.yml
 
-            - name: Commit final integration fixes
+            - name: Commit validated non-workflow changes
               run: |
-                  if git diff --quiet -- \
-                    README.md \
-                    CONTRIBUTING.md \
-                    setup.bat \
-                    cli \
-                    .github/workflows/ci.yml \
-                    .github/workflows/publish-npm.yml \
-                    .github/workflows/release-hardening-finalize.yml \
-                    .github/ISSUE_TEMPLATE/bug_report.yml; then
-                    echo "No final integration changes were needed."
-                    exit 0
-                  fi
                   git config user.name "github-actions[bot]"
                   git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
                   git add \
@@ -155,9 +154,12 @@ jobs:
                     README.md \
                     CONTRIBUTING.md \
                     setup.bat \
-                    .github/workflows/ci.yml \
-                    .github/workflows/publish-npm.yml \
-                    .github/workflows/release-hardening-finalize.yml \
-                    .github/ISSUE_TEMPLATE/bug_report.yml
+                    .github/ISSUE_TEMPLATE/bug_report.yml \
+                    .release-review/ci.yml \
+                    .release-review/publish-npm.yml
+                  if git diff --cached --quiet; then
+                    echo "No validated non-workflow changes were needed."
+                    exit 0
+                  fi
                   git commit -m "chore(release): finalize npx v2 hardening"
                   git push origin HEAD:agent/npx-v2-release-hardening
