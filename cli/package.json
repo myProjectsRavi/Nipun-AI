@@ -1,9 +1,14 @@
 {
     "name": "nipun-ai",
-    "version": "1.1.1",
-    "description": "The Open-Source Bloomberg Alternative — 55+ data dimensions, 5 AI models, zero cost. Run locally with one command.",
+    "version": "2.0.0",
+    "description": "The Open-Source Bloomberg Alternative — 55+ data dimensions, multi-model AI analysis, zero cost. Run locally with one command.",
+    "type": "module",
     "bin": {
         "nipun-ai": "./bin/nipun-ai.js"
+    },
+    "scripts": {
+        "test": "node --test test/*.test.js",
+        "check": "node --check bin/nipun-ai.js && node --check lib/cli.js && npm test && npm pack --dry-run"
     },
     "keywords": [
         "finance",
@@ -12,17 +17,33 @@
         "bloomberg",
         "investment",
         "financial-analysis",
+        "fintech",
         "open-source",
-        "cloudflare-workers"
+        "cloudflare-workers",
+        "byok",
+        "valuation"
     ],
     "author": "RTN Labs (https://github.com/myProjectsRavi)",
     "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/myProjectsRavi/Nipun-AI"
+        "url": "https://github.com/myProjectsRavi/Nipun-AI.git"
     },
-    "homepage": "https://github.com/myProjectsRavi/Nipun-AI",
+    "homepage": "https://nipun-ai.pages.dev/",
+    "bugs": {
+        "url": "https://github.com/myProjectsRavi/Nipun-AI/issues"
+    },
+    "funding": "https://github.com/sponsors/myProjectsRavi",
     "engines": {
-        "node": ">=18.0.0"
+        "node": ">=22.0.0"
+    },
+    "files": [
+        "bin",
+        "lib",
+        "README.md"
+    ],
+    "publishConfig": {
+        "access": "public",
+        "registry": "https://registry.npmjs.org/"
     }
 }
