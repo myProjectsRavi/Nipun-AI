@@ -40,6 +40,16 @@ export default tseslint.config(
         },
     },
 
+    /* ── CLI (Node.js) ─────────────────────────────────────── */
+    {
+        files: ['cli/**/*.js'],
+        languageOptions: { globals: globals.node },
+        rules: {
+            // Console output is the CLI's user interface.
+            'no-console': 'off',
+        },
+    },
+
     /* ── Disable formatting rules (Prettier handles them) ── */
     prettier,
 );

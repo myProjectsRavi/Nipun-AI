@@ -112,8 +112,8 @@ export const useStore = create<AppState>((set, get) => ({
                         }
                     }
                 }
-            } catch (e) {
-                // Ignore cache read errors
+            } catch {
+                // Cache reads are best-effort; continue with a fresh analysis.
             }
         }
 
@@ -148,7 +148,9 @@ export const useStore = create<AppState>((set, get) => ({
                 try {
                     const encrypted = await encryptCache(JSON.stringify(data));
                     localStorage.setItem(`nipun_cache_${ticker}`, encrypted);
-                } catch (e) { }
+                } catch {
+                    // Cache writes are best-effort; the analysis result is still usable.
+                }
             }
 
             set({ result: data, view: 'report', analysisPhase: '' });
