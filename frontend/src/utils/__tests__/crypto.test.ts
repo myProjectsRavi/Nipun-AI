@@ -1,3 +1,5 @@
+// @vitest-environment node
+
 /**
  * ─── Crypto Module Tests ──────────────────────────────────────────
  * Roundtrip encryption/decryption tests for BYOK API key storage
