@@ -89,15 +89,9 @@ test('concurrent first installs serialize and never expose or delete a partial r
     assert.equal(stageCalls, 1);
     assert.equal(installCalls, 1);
     assert.equal(finalVisibleDuringInstall, false);
-    assert.deepEqual(
-        results.map((result) => result.installed).sort(),
-        [false, true],
-    );
+    assert.deepEqual(results.map((result) => result.installed).sort(), [false, true]);
     assert.equal(isReleaseReady(finalDir, version), true);
-    assert.equal(
-        readdirSync(managedRoot(home)).some((name) => name.startsWith(`.install-${version}-`)),
-        false,
-    );
+    assert.equal(readdirSync(managedRoot(home)).some((name) => name.startsWith(`.install-${version}-`)), false);
     rmSync(home, { recursive: true, force: true });
 });
 
