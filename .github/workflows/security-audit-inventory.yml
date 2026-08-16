@@ -1,0 +1,26 @@
+name: Security audit inventory
+
+on:
+  push:
+    branches: [chore/worker-toolchain-v5]
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: npm audit inventory
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Root audit
+        run: npm audit --json || true
+      - name: Frontend audit
+        working-directory: frontend
+        run: npm audit --json || true
+      - name: Worker audit
+        working-directory: worker
+        run: npm audit --json || true
