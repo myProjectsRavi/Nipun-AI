@@ -6,6 +6,8 @@ Thank you for your interest in contributing! Nipun AI is an open-source project 
 
 ## Quick Start
 
+**Prerequisite:** Node.js 22 or newer.
+
 ```bash
 # 1. Fork the repo on GitHub
 
@@ -14,14 +16,16 @@ git clone https://github.com/YOUR_USERNAME/Nipun-AI.git
 cd Nipun-AI
 
 # 3. Start the Worker (Terminal 1)
-cd worker && npm install && npx wrangler dev
+cd worker && npm ci --no-fund && npx wrangler dev
 
 # 4. Start the Frontend (Terminal 2)
-cd frontend && npm install && npm run dev
+cd frontend && npm ci --no-fund && npm run dev
 
 # 5. Create a branch
 git checkout -b feat/your-feature-name
 ```
+
+For the end-user one-command launcher, use `npx nipun-ai@latest` rather than a development checkout.
 
 ---
 
@@ -31,6 +35,7 @@ git checkout -b feat/your-feature-name
 |---|---|---|
 | `frontend/src/` | React SPA (Cloudflare Pages) | TypeScript + React |
 | `worker/src/` | Cloudflare Worker API | TypeScript |
+| `cli/` | Published `nipun-ai` npm launcher | JavaScript (ES modules) |
 
 ---
 
@@ -39,7 +44,7 @@ git checkout -b feat/your-feature-name
 ### Code Style
 
 - **TypeScript**: Strict mode, no `any` types (use proper interfaces from `types.ts`)
-- **Formatting**: Use your editor's default formatter — consistency matters more than style
+- **Formatting**: Use the repository Prettier configuration and keep CI green
 - **Comments**: Document *why*, not *what* — the code should be self-explanatory
 - **Naming**: `camelCase` for variables/functions, `PascalCase` for types/components
 
@@ -50,6 +55,8 @@ git checkout -b feat/your-feature-name
 3. **Graceful degradation** — Every external API call must have a try/catch with a mock data fallback.
 4. **Phase separation** — Data fetching, computation, AI synthesis, and secondary AI are separate phases. Don't mix them.
 5. **Type safety** - All interfaces must be defined in `shared/types.ts` (single source of truth).
+6. **Reproducible installs** — Keep npm lockfiles synchronized and use `npm ci` in CI/release paths.
+7. **No secrets in Git** — Never commit API keys, npm tokens, private certificates, `.env` secrets, or personal credentials.
 
 ### Commit Messages
 
@@ -75,8 +82,8 @@ docs: add API endpoint documentation
 
 ### High-Impact Contributions
 
-- **Unit tests** for `compute.ts` (10 pure functions, easy to test)
-- **CLI ticker support** (`npx nipun-ai AAPL`) — add direct ticker arg to CLI for terminal-based analysis
+- **Unit tests** for `compute.ts` (pure functions, easy to test)
+- **CLI ticker support** (`npx nipun-ai@latest AAPL`) — add direct ticker arg to CLI for terminal-based analysis
 - **International market support** (BSE/NSE/LSE tickers)
 - **Portfolio mode** (multi-stock dashboard)
 - **Embeddable widget** for blogs and websites
@@ -87,6 +94,7 @@ docs: add API endpoint documentation
 - Changes that require paid services without free tier alternatives
 - Changes that store API keys on the server
 - Large dependency additions without justification
+- Secrets, private keys, access tokens, or confidential user data
 
 ---
 
@@ -95,8 +103,9 @@ docs: add API endpoint documentation
 1. **Branch** from `main` with a descriptive name (`feat/`, `fix/`, `docs/`)
 2. **Test** your changes locally with both Worker and Frontend running
 3. **Type-check**: Run `npx tsc --noEmit` in both `worker/` and `frontend/`
-4. **Describe** your changes clearly in the PR description
-5. **Link** any related issues
+4. **CLI changes**: Run `cd cli && npm ci && npm run check`
+5. **Describe** your changes clearly in the PR description
+6. **Link** any related issues
 
 ---
 
@@ -105,9 +114,9 @@ docs: add API endpoint documentation
 When filing a bug report, include:
 
 1. **Ticker** used (if applicable)
-2. **Mode**: Demo or Live (with which keys configured)
+2. **Mode**: Demo or Live (never include API key values)
 3. **Browser** and version
-4. **Console errors** (if any)
+4. **Console errors** with secrets redacted
 5. **Expected** vs **actual** behavior
 
 ---
