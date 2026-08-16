@@ -75,21 +75,38 @@ echo -e "   ✅ All dependencies installed."
 echo ""
 echo -e "${YELLOW}[4/4]${NC} Starting Nipun AI..."
 echo ""
-
 echo "   Default ports: frontend 5173 · worker 8787"
-echo "   This script never terminates existing processes. If a port is busy, stop the owning process or use the recommended npm launcher: npx nipun-ai@latest"
+echo "   This script never terminates unrelated processes."
+echo "   If a default port is busy, use the recommended launcher: npx nipun-ai@latest"
 
-# Start worker in background
-(cd worker && npx wrangler dev --port 8787 2>&1 &)
-sleep 2
+WORKER_PID=''
+FRONTEND_PID=''
+cleanup() {
+    trap - EXIT INT TERM
+    [ -n "$FRONTEND_PID" ] && kill "$FRONTEND_PID" 2>/dev/null || true
+    [ -n "$WORKER_PID" ] && kill "$WORKER_PID" 2>/dev/null || true
+}
+trap cleanup EXIT INT TERM
 
-# Start frontend in background
-(cd frontend && npm run dev 2>&1 &)
+(cd worker && exec npx wrangler dev --port 8787) &
+WORKER_PID=$!
 sleep 2
+if ! kill -0 "$WORKER_PID" 2>/dev/null; then
+    echo -e "${RED}❌ Worker failed to start. Check whether port 8787 is already in use.${NC}"
+    exit 1
+fi
+
+(cd frontend && exec npm run dev) &
+FRONTEND_PID=$!
+sleep 2
+if ! kill -0 "$FRONTEND_PID" 2>/dev/null; then
+    echo -e "${RED}❌ Frontend failed to start. Check whether port 5173 is already in use.${NC}"
+    exit 1
+fi
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo -e "${GREEN}✅ Nipun AI startup commands launched.${NC}"
+echo -e "${GREEN}✅ Nipun AI is running!${NC}"
 echo ""
 echo -e "   🌐 Frontend: ${CYAN}http://localhost:5173${NC}"
 echo -e "   ⚙️  Worker:   ${CYAN}http://localhost:8787${NC}"
@@ -106,6 +123,8 @@ echo "   • Groq:     https://console.groq.com"
 echo "   • Cohere:   https://dashboard.cohere.com"
 echo "   • Cerebras: https://cloud.cerebras.ai (optional)"
 echo ""
-echo "   Close the started development processes to stop Nipun AI."
+echo "   Press Ctrl+C to stop both services."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
+
+wait "$WORKER_PID" "$FRONTEND_PID"
