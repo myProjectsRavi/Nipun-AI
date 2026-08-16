@@ -17,12 +17,12 @@ jobs:
         if: github.event.release.prerelease == false
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
               with:
                   ref: ${{ github.event.release.tag_name }}
                   fetch-depth: 0
                   persist-credentials: false
-            - uses: actions/setup-node@v6
+            - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
               with:
                   node-version: 24
                   package-manager-cache: false
@@ -63,18 +63,20 @@ jobs:
                   }
                   NODE
             - name: Require release commit to be on main
-              run: git merge-base --is-ancestor HEAD origin/main
+              run: |
+                  git fetch --no-tags origin main
+                  git merge-base --is-ancestor HEAD origin/main
 
     validate-root:
         name: Release validation (root)
         needs: release-policy
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
               with:
                   ref: ${{ github.event.release.tag_name }}
                   persist-credentials: false
-            - uses: actions/setup-node@v6
+            - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
               with:
                   node-version: 22
                   package-manager-cache: false
@@ -91,11 +93,11 @@ jobs:
             run:
                 working-directory: frontend
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
               with:
                   ref: ${{ github.event.release.tag_name }}
                   persist-credentials: false
-            - uses: actions/setup-node@v6
+            - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
               with:
                   node-version: 22
                   package-manager-cache: false
@@ -114,11 +116,11 @@ jobs:
             run:
                 working-directory: worker
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
               with:
                   ref: ${{ github.event.release.tag_name }}
                   persist-credentials: false
-            - uses: actions/setup-node@v6
+            - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
               with:
                   node-version: 22
                   package-manager-cache: false
@@ -133,11 +135,11 @@ jobs:
         needs: release-policy
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
               with:
                   ref: ${{ github.event.release.tag_name }}
                   persist-credentials: false
-            - uses: actions/setup-node@v6
+            - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
               with:
                   node-version: 22
                   package-manager-cache: false
@@ -173,11 +175,11 @@ jobs:
             run:
                 working-directory: cli
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
               with:
                   ref: ${{ github.event.release.tag_name }}
                   persist-credentials: false
-            - uses: actions/setup-node@v6
+            - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
               with:
                   node-version: 22
                   package-manager-cache: false
@@ -202,11 +204,11 @@ jobs:
             contents: read
             id-token: write
         steps:
-            - uses: actions/checkout@v6
+            - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
               with:
                   ref: ${{ github.event.release.tag_name }}
                   persist-credentials: false
-            - uses: actions/setup-node@v6
+            - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
               with:
                   node-version: 24
                   registry-url: https://registry.npmjs.org
