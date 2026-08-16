@@ -6,13 +6,16 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: Lint & Format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
@@ -28,8 +31,8 @@ jobs:
       matrix:
         package: [frontend, worker]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
@@ -44,8 +47,8 @@ jobs:
       matrix:
         package: [worker, frontend]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
@@ -60,8 +63,8 @@ jobs:
       matrix:
         package: [frontend, worker]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: npm
@@ -73,3 +76,48 @@ jobs:
       - name: Load Wrangler Worker deploy command
         if: matrix.package == 'worker'
         run: cd worker && npx wrangler deploy --help > /dev/null
+
+  cli:
+    name: CLI Package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: cli/package-lock.json
+      - name: Install CLI package metadata
+        working-directory: cli
+        run: npm ci
+      - name: Run CLI tests and syntax checks
+        working-directory: cli
+        run: npm run check
+      - name: Validate publish allowlist
+        working-directory: cli
+        run: |
+          npm pack --dry-run --json > "$RUNNER_TEMP/nipun-pack.json"
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs';
+          const report = JSON.parse(readFileSync(process.env.RUNNER_TEMP + '/nipun-pack.json', 'utf8'))[0];
+          const files = report.files.map((entry) => entry.path).sort();
+          const required = ['README.md', 'bin/nipun-ai.js', 'lib/cli.js', 'package.json'];
+          for (const path of required) {
+            if (!files.includes(path)) throw new Error(`Missing required package file: ${path}`);
+          }
+          const forbidden = files.filter((path) => /(^|\/)(test|tests|\.env|\.github)(\/|$)|\.(pem|key|p12|pfx)$/i.test(path));
+          if (forbidden.length) throw new Error(`Forbidden files in npm package: ${forbidden.join(', ')}`);
+          NODE
+      - name: Smoke test packed CLI commands
+        working-directory: cli
+        run: |
+          PACKAGE_FILE=$(npm pack --silent)
+          SMOKE_DIR="$RUNNER_TEMP/nipun-cli-smoke"
+          mkdir -p "$SMOKE_DIR"
+          cd "$SMOKE_DIR"
+          npm init -y >/dev/null
+          npm install "$GITHUB_WORKSPACE/cli/$PACKAGE_FILE" --ignore-scripts --no-audit --no-fund
+          EXPECTED=$(node -p "require('$GITHUB_WORKSPACE/cli/package.json').version")
+          ACTUAL=$(./node_modules/.bin/nipun-ai --version)
+          test "$ACTUAL" = "$EXPECTED"
+          ./node_modules/.bin/nipun-ai --doctor
