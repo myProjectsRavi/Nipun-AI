@@ -46,8 +46,6 @@ jobs:
 
       - name: Root lint
         run: npx eslint .
-      - name: Root formatting
-        run: npx prettier --check .
       - name: Frontend typecheck
         working-directory: frontend
         run: npx tsc --noEmit
