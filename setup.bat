@@ -1,4 +1,5 @@
 @echo off
+setlocal EnableExtensions EnableDelayedExpansion
 REM ─────────────────────────────────────────────────────────────────
 REM 🧠 Nipun AI — One-Command Local Setup (Windows)
 REM
@@ -16,17 +17,28 @@ REM ─── 1. Check prerequisites ──────────────�
 echo [1/4] Checking prerequisites...
 
 where node >nul 2>&1
-if %ERRORLEVEL% neq 0 (
+if errorlevel 1 (
     echo.
-    echo ERROR: Node.js is required but not installed.
-    echo        Download from: https://nodejs.org (LTS recommended^)
+    echo ERROR: Node.js 22 or newer is required but not installed.
+    echo        Download from: https://nodejs.org
+    echo.
+    pause
+    exit /b 1
+)
+
+for /f "tokens=*" %%v in ('node -p "process.versions.node.split('.')[0]"') do set NODE_MAJOR=%%v
+if !NODE_MAJOR! LSS 22 (
+    echo.
+    echo ERROR: Node.js 22+ is required. Current version:
+    node -v
+    echo        Update from: https://nodejs.org
     echo.
     pause
     exit /b 1
 )
 
 where npm >nul 2>&1
-if %ERRORLEVEL% neq 0 (
+if errorlevel 1 (
     echo.
     echo ERROR: npm is required but not installed.
     echo        It comes with Node.js: https://nodejs.org
@@ -41,15 +53,15 @@ REM ─── 2. Clone if needed ───────────────�
 echo.
 if exist "package.json" (
     findstr /c:"nipun-ai" package.json >nul 2>&1
-    if %ERRORLEVEL% equ 0 (
-        echo [2/4] Already in Nipun AI directory — skipping clone.
+    if not errorlevel 1 (
+        echo [2/4] Already in Nipun AI directory - skipping clone.
         goto :install
     )
 )
 
 echo [2/4] Cloning Nipun AI...
 where git >nul 2>&1
-if %ERRORLEVEL% neq 0 (
+if errorlevel 1 (
     echo.
     echo ERROR: Git is required. Install from: https://git-scm.com
     echo.
@@ -57,17 +69,22 @@ if %ERRORLEVEL% neq 0 (
     exit /b 1
 )
 git clone https://github.com/myProjectsRavi/Nipun-AI.git
+if errorlevel 1 (
+    echo ERROR: Git clone failed.
+    pause
+    exit /b 1
+)
 cd Nipun-AI
 
 :install
 REM ─── 3. Install dependencies ─────────────────────────────────────
 echo.
-echo [3/4] Installing dependencies (this takes ~30 seconds)...
+echo [3/4] Installing dependencies from lockfiles...
 
 echo    Installing Worker dependencies...
 cd worker
-call npm install --silent
-if %ERRORLEVEL% neq 0 (
+call npm ci --no-fund
+if errorlevel 1 (
     echo ERROR: Worker install failed.
     pause
     exit /b 1
@@ -76,8 +93,8 @@ cd ..
 
 echo    Installing Frontend dependencies...
 cd frontend
-call npm install --silent
-if %ERRORLEVEL% neq 0 (
+call npm ci --no-fund
+if errorlevel 1 (
     echo ERROR: Frontend install failed.
     pause
     exit /b 1
@@ -90,6 +107,8 @@ REM ─── 4. Start both services ──────────────�
 echo.
 echo [4/4] Starting Nipun AI...
 echo.
+echo    This script never terminates processes already using ports 8787 or 5173.
+echo    If a default port is busy, use the recommended launcher: npx nipun-ai@latest
 
 REM Start worker in a new window
 start "Nipun AI Worker" cmd /k "cd worker && npx wrangler dev --port 8787"
@@ -104,7 +123,7 @@ timeout /t 3 /nobreak >nul
 
 echo.
 echo ============================================================
-echo   Nipun AI is running!
+echo   Nipun AI startup commands launched.
 echo.
 echo   Frontend: http://localhost:5173
 echo   Worker:   http://localhost:8787
@@ -125,3 +144,4 @@ echo   Close the Worker and Frontend windows to stop.
 echo ============================================================
 echo.
 pause
+endlocal

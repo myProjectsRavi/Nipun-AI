@@ -1,0 +1,233 @@
+name: Publish npm package
+
+on:
+    release:
+        types: [published]
+
+permissions:
+    contents: read
+
+concurrency:
+    group: npm-publish-${{ github.event.release.tag_name }}
+    cancel-in-progress: false
+
+jobs:
+    release-policy:
+        name: Verify immutable release policy
+        if: github.event.release.prerelease == false
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+              with:
+                  ref: ${{ github.event.release.tag_name }}
+                  fetch-depth: 0
+                  persist-credentials: false
+            - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+              with:
+                  node-version: 24
+                  package-manager-cache: false
+            - name: Require immutable stable release and matching package version
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  RELEASE_API_URL: ${{ github.event.release.url }}
+                  RELEASE_TAG: ${{ github.event.release.tag_name }}
+              run: |
+                  node --input-type=module <<'NODE'
+                  import { readFileSync } from 'node:fs';
+
+                  const response = await fetch(process.env.RELEASE_API_URL, {
+                    headers: {
+                      Accept: 'application/vnd.github+json',
+                      Authorization: `Bearer ${process.env.GH_TOKEN}`,
+                      'User-Agent': 'nipun-ai-release-policy',
+                      'X-GitHub-Api-Version': '2026-03-10',
+                    },
+                  });
+                  if (!response.ok) throw new Error(`Could not verify GitHub release: HTTP ${response.status}`);
+
+                  const release = await response.json();
+                  if (!release.immutable) {
+                    throw new Error('Refusing npm publication: GitHub release immutability is not enabled for this release.');
+                  }
+                  if (release.draft || release.prerelease) {
+                    throw new Error('Refusing npm publication from a draft or prerelease.');
+                  }
+
+                  const pkg = JSON.parse(readFileSync('cli/package.json', 'utf8'));
+                  const expectedTag = `v${pkg.version}`;
+                  if (!/^v\d+\.\d+\.\d+$/.test(process.env.RELEASE_TAG)) {
+                    throw new Error(`Stable npm releases require a vMAJOR.MINOR.PATCH tag; received ${process.env.RELEASE_TAG}`);
+                  }
+                  if (process.env.RELEASE_TAG !== expectedTag) {
+                    throw new Error(`Release tag ${process.env.RELEASE_TAG} does not match cli/package.json version ${pkg.version}`);
+                  }
+                  NODE
+            - name: Require release commit to be on main
+              run: |
+                  git fetch --no-tags origin main
+                  git merge-base --is-ancestor HEAD origin/main
+
+    validate-root:
+        name: Release validation (root)
+        needs: release-policy
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+              with:
+                  ref: ${{ github.event.release.tag_name }}
+                  persist-credentials: false
+            - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+              with:
+                  node-version: 22
+                  package-manager-cache: false
+            - run: npm ci
+            - run: npm audit --audit-level=high
+            - run: npx eslint .
+            - run: npx prettier --check .
+
+    validate-frontend:
+        name: Release validation (frontend)
+        needs: release-policy
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: frontend
+        steps:
+            - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+              with:
+                  ref: ${{ github.event.release.tag_name }}
+                  persist-credentials: false
+            - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+              with:
+                  node-version: 22
+                  package-manager-cache: false
+            - run: npm ci
+            - run: npm audit --audit-level=high
+            - run: npx tsc --noEmit
+            - run: npx vitest run --reporter=verbose
+            - run: npm run build
+            - run: npx wrangler pages deploy --help > /dev/null
+
+    validate-worker:
+        name: Release validation (worker)
+        needs: release-policy
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: worker
+        steps:
+            - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+              with:
+                  ref: ${{ github.event.release.tag_name }}
+                  persist-credentials: false
+            - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+              with:
+                  node-version: 22
+                  package-manager-cache: false
+            - run: npm ci
+            - run: npm audit --audit-level=high
+            - run: npx tsc --noEmit
+            - run: npx vitest run --reporter=verbose
+            - run: npx wrangler deploy --help > /dev/null
+
+    validate-cli:
+        name: Release validation (CLI package)
+        needs: release-policy
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+              with:
+                  ref: ${{ github.event.release.tag_name }}
+                  persist-credentials: false
+            - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+              with:
+                  node-version: 22
+                  package-manager-cache: false
+            - name: Validate CLI source and package
+              working-directory: cli
+              run: |
+                  npm ci
+                  npm audit --audit-level=high
+                  npm run check
+            - name: Validate packed artifact before release smoke
+              working-directory: cli
+              run: |
+                  PACKAGE_FILE=$(npm pack --silent)
+                  SMOKE_DIR="$RUNNER_TEMP/nipun-cli-release-package"
+                  mkdir -p "$SMOKE_DIR"
+                  cd "$SMOKE_DIR"
+                  npm init -y >/dev/null
+                  npm install "$GITHUB_WORKSPACE/cli/$PACKAGE_FILE" --ignore-scripts --no-audit --no-fund
+                  EXPECTED=$(node -p "require('$GITHUB_WORKSPACE/cli/package.json').version")
+                  ACTUAL=$(./node_modules/.bin/nipun-ai --version)
+                  test "$ACTUAL" = "$EXPECTED"
+                  ./node_modules/.bin/nipun-ai --doctor
+
+    validate-cli-platform:
+        name: Release launcher smoke (${{ matrix.os }})
+        needs: release-policy
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest, windows-latest, macos-latest]
+        defaults:
+            run:
+                working-directory: cli
+        steps:
+            - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+              with:
+                  ref: ${{ github.event.release.tag_name }}
+                  persist-credentials: false
+            - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+              with:
+                  node-version: 22
+                  package-manager-cache: false
+            - run: npm ci
+            - run: npm test
+            - name: Launch matching immutable release end-to-end
+              env:
+                  CI: 'true'
+              run: node bin/nipun-ai.js --smoke-test
+
+    publish:
+        name: Publish nipun-ai to npm
+        needs:
+            - release-policy
+            - validate-root
+            - validate-frontend
+            - validate-worker
+            - validate-cli
+            - validate-cli-platform
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            id-token: write
+        steps:
+            - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+              with:
+                  ref: ${{ github.event.release.tag_name }}
+                  persist-credentials: false
+            - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+              with:
+                  node-version: 24
+                  registry-url: https://registry.npmjs.org
+                  package-manager-cache: false
+            - name: Require npm trusted-publishing capable CLI
+              run: |
+                  node --input-type=module <<'NODE'
+                  import { execFileSync } from 'node:child_process';
+                  const version = execFileSync('npm', ['--version'], { encoding: 'utf8' }).trim();
+                  const [major, minor, patch] = version.split('.').map(Number);
+                  const supported = major > 11 || (major === 11 && (minor > 5 || (minor === 5 && patch >= 1)));
+                  if (!supported) throw new Error(`npm 11.5.1+ is required for trusted publishing; runner has ${version}`);
+                  console.log(`npm ${version} supports trusted publishing.`);
+                  NODE
+            - name: Revalidate publish artifact
+              working-directory: cli
+              run: |
+                  npm ci
+                  npm run check
+            - name: Publish with npm Trusted Publishing (OIDC)
+              working-directory: cli
+              run: npm publish

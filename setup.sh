@@ -26,13 +26,13 @@ echo -e "${YELLOW}[1/4]${NC} Checking prerequisites..."
 
 if ! command -v node &>/dev/null; then
     echo -e "${RED}❌ Node.js is required but not installed.${NC}"
-    echo "   Install it from: https://nodejs.org (LTS recommended)"
+    echo "   Install Node.js 22 or newer from: https://nodejs.org"
     exit 1
 fi
 
 NODE_VERSION=$(node -v | sed 's/v//' | cut -d. -f1)
-if [ "$NODE_VERSION" -lt 18 ]; then
-    echo -e "${RED}❌ Node.js 18+ required. You have $(node -v).${NC}"
+if [ "$NODE_VERSION" -lt 22 ]; then
+    echo -e "${RED}❌ Node.js 22+ required. You have $(node -v).${NC}"
     echo "   Update from: https://nodejs.org"
     exit 1
 fi
@@ -59,15 +59,15 @@ else
     echo -e "${YELLOW}[2/4]${NC} Already in Nipun AI directory — skipping clone."
 fi
 
-# ─── 3. Install dependencies ───────────────────────────────────────
+# ─── 3. Install dependencies ────────────────────────────────────────
 echo ""
-echo -e "${YELLOW}[3/4]${NC} Installing dependencies (this takes ~30 seconds)..."
+echo -e "${YELLOW}[3/4]${NC} Installing dependencies from lockfiles..."
 
 echo "   📦 Worker..."
-(cd worker && npm install --silent 2>&1) || { echo -e "${RED}❌ Worker install failed${NC}"; exit 1; }
+(cd worker && npm ci --no-fund) || { echo -e "${RED}❌ Worker install failed${NC}"; exit 1; }
 
 echo "   📦 Frontend..."
-(cd frontend && npm install --silent 2>&1) || { echo -e "${RED}❌ Frontend install failed${NC}"; exit 1; }
+(cd frontend && npm ci --no-fund) || { echo -e "${RED}❌ Frontend install failed${NC}"; exit 1; }
 
 echo -e "   ✅ All dependencies installed."
 
@@ -75,20 +75,34 @@ echo -e "   ✅ All dependencies installed."
 echo ""
 echo -e "${YELLOW}[4/4]${NC} Starting Nipun AI..."
 echo ""
+echo "   Default ports: frontend 5173 · worker 8787"
+echo "   This script never terminates unrelated processes."
+echo "   If a default port is busy, use the recommended launcher: npx nipun-ai@latest"
 
-# Kill anything already using these ports (prevents "Address already in use" on re-runs)
-echo -e "   Freeing ports 8787 and 5173..."
-lsof -ti:8787 | xargs kill -9 2>/dev/null || true
-lsof -ti:5173 | xargs kill -9 2>/dev/null || true
-sleep 1
+WORKER_PID=''
+FRONTEND_PID=''
+cleanup() {
+    trap - EXIT INT TERM
+    [ -n "$FRONTEND_PID" ] && kill "$FRONTEND_PID" 2>/dev/null || true
+    [ -n "$WORKER_PID" ] && kill "$WORKER_PID" 2>/dev/null || true
+}
+trap cleanup EXIT INT TERM
 
-# Start worker in background
-(cd worker && npx wrangler dev --port 8787 2>&1 &)
+(cd worker && exec npx wrangler dev --port 8787) &
+WORKER_PID=$!
 sleep 2
+if ! kill -0 "$WORKER_PID" 2>/dev/null; then
+    echo -e "${RED}❌ Worker failed to start. Check whether port 8787 is already in use.${NC}"
+    exit 1
+fi
 
-# Start frontend in background
-(cd frontend && npm run dev 2>&1 &)
+(cd frontend && exec npm run dev) &
+FRONTEND_PID=$!
 sleep 2
+if ! kill -0 "$FRONTEND_PID" 2>/dev/null; then
+    echo -e "${RED}❌ Frontend failed to start. Check whether port 5173 is already in use.${NC}"
+    exit 1
+fi
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -113,5 +127,4 @@ echo "   Press Ctrl+C to stop both services."
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-# Wait for background processes
-wait
+wait "$WORKER_PID" "$FRONTEND_PID"

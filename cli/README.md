@@ -1,45 +1,57 @@
-# 🧠 Nipun AI — The Open-Source Bloomberg Alternative
+# 🧠 Nipun AI CLI
 
-**55+ data dimensions · 5 AI models · 3 valuation methods · Zero cost.**
+One-command local launcher for [Nipun AI](https://github.com/myProjectsRavi/Nipun-AI), the open-source AI stock analysis platform.
 
-## Install & Run
+## Run
 
 ```bash
-npx nipun-ai
+npx nipun-ai@latest
 ```
 
-That's it. Browser opens automatically. Click **Demo Mode** to explore, or enter your free API keys for live stock analysis.
+The CLI opens Nipun AI in your browser after starting the local frontend and Cloudflare Worker.
 
-### What Happens
+## Requirements
 
-1. Downloads Nipun AI to `~/nipun-ai/`
-2. Installs all dependencies automatically
-3. Starts the backend (Cloudflare Worker) and frontend (React + Vite)
-4. Opens `http://localhost:5173` in your browser
+- Node.js 22 or newer
+- npm (included with Node.js)
+- Internet access on the first launch of a new Nipun AI release
 
-### Prerequisites
+No global install is required.
 
-- **Node.js 18+** ([download](https://nodejs.org))
+## Deterministic releases
 
-### Features
+Each npm CLI version installs the matching GitHub release tag. For example, `nipun-ai@2.0.0` installs GitHub release `v2.0.0` under:
 
-- 🏆 **Nipun Score™** — Proprietary A+ to F grade
-- 🧠 **Multi-AI Consensus** — 5 Gemini models + Cerebras second opinion
-- ✅ **Fact Audit** — Cohere-powered claim verification
-- 🧮 **3 Valuation Models** — DCF + Graham Number + Lynch Fair Value
-- 🛡️ **Zero-Knowledge Security** — AES-256-GCM encryption, BYOK
-- 📊 **55+ Data Dimensions** — Technicals, fundamentals, sentiment, insider activity
-- 📄 **PDF Export** — 20+ section institutional-grade report
+```text
+~/.nipun-ai/releases/2.0.0/
+```
 
-### Links
+Dependencies are installed from the repository lockfiles using `npm ci`. A verified release is reused on subsequent launches, so the CLI does not reinstall dependencies every time.
 
-- **GitHub**: [github.com/myProjectsRavi/Nipun-AI](https://github.com/myProjectsRavi/Nipun-AI)
-- **License**: MIT
+The CLI never overwrites a manually cloned `~/nipun-ai` directory and never terminates unrelated processes that happen to use the default ports. If ports 8787 or 5173 are busy, safe alternative local ports are selected automatically.
 
-### Support
+## Diagnostics
 
-If Nipun AI is useful to you:
+```bash
+npx nipun-ai@latest --doctor
+```
 
-- [GitHub Sponsors](https://github.com/sponsors/myProjectsRavi)
-- [PayPal](https://www.paypal.com/paypalme/rtnlabs)
-- [Lemon Squeezy](https://rtnlabs.lemonsqueezy.com/checkout/buy/1be9bcd1-5f3e-4c50-906e-deb661fcf64d)
+This checks the local Node/npm environment, release cache, extraction tools, and default port availability without printing API keys or other secrets.
+
+## Other commands
+
+```bash
+npx nipun-ai@latest --version
+npx nipun-ai@latest --help
+```
+
+## Security and privacy
+
+Nipun AI is BYOK. Do not paste API keys into terminal commands, GitHub issues, or logs. Report security issues using the private process documented in the repository's [SECURITY.md](https://github.com/myProjectsRavi/Nipun-AI/blob/main/SECURITY.md).
+
+## Links
+
+- GitHub: https://github.com/myProjectsRavi/Nipun-AI
+- Live demo: https://nipun-ai.pages.dev/
+- Issues: https://github.com/myProjectsRavi/Nipun-AI/issues
+- License: MIT
