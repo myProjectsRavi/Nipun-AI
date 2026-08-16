@@ -1,0 +1,81 @@
+name: Final npm audit lockfile fixes
+
+on:
+  push:
+    branches: [chore/final-npm-audit-fixes]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    name: Generate and validate audit lockfile fixes
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chore/final-npm-audit-fixes
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Refresh root picomatch lock selection
+        run: npm update picomatch --package-lock-only
+      - name: Refresh worker nanoid lock selection
+        working-directory: worker
+        run: npm update nanoid --package-lock-only
+
+      - name: Verify root clean install
+        run: npm ci
+      - name: Verify frontend clean install
+        working-directory: frontend
+        run: npm ci
+      - name: Verify worker clean install
+        working-directory: worker
+        run: npm ci
+
+      - name: Require zero root high/critical vulnerabilities
+        run: npm audit --audit-level=high
+      - name: Require zero frontend high/critical vulnerabilities
+        working-directory: frontend
+        run: npm audit --audit-level=high
+      - name: Require zero worker high/critical vulnerabilities
+        working-directory: worker
+        run: npm audit --audit-level=high
+
+      - name: Root lint
+        run: npx eslint .
+      - name: Root formatting
+        run: npx prettier --check .
+      - name: Frontend typecheck
+        working-directory: frontend
+        run: npx tsc --noEmit
+      - name: Frontend tests
+        working-directory: frontend
+        run: npx vitest run --reporter=verbose
+      - name: Frontend build and Wrangler Pages smoke
+        working-directory: frontend
+        run: npm run build && npx wrangler pages deploy --help > /dev/null
+      - name: Worker typecheck
+        working-directory: worker
+        run: npx tsc --noEmit
+      - name: Worker tests
+        working-directory: worker
+        run: npx vitest run --reporter=verbose
+      - name: Worker Wrangler smoke
+        working-directory: worker
+        run: npx wrangler deploy --help > /dev/null
+
+      - name: Commit npm-generated lockfiles
+        run: |
+          git diff -- package-lock.json worker/package-lock.json
+          if git diff --quiet -- package-lock.json worker/package-lock.json; then
+            echo "Expected lockfile security updates were not generated"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json worker/package-lock.json
+          git commit -m "chore(deps): resolve remaining npm audit highs"
+          git push origin HEAD:chore/final-npm-audit-fixes
