@@ -7,18 +7,13 @@ node_modules/
 #
 # These files already failed `prettier --check .` before the CI baseline repair.
 # Keep new/clean files under Prettier enforcement and remove entries as legacy
-# files are deliberately normalized, instead of mixing a 51-file style rewrite
-# into unrelated security and reliability work.
+# files are deliberately normalized, instead of mixing a large style rewrite
+# into unrelated work.
 
 .github/FUNDING.yml
-.github/ISSUE_TEMPLATE/bug_report.yml
 .github/ISSUE_TEMPLATE/config.yml
 .github/ISSUE_TEMPLATE/feature_request.yml
 .github/PULL_REQUEST_TEMPLATE.md
-.github/workflows/ci.yml
-cli/bin/nipun-ai.js
-cli/package.json
-CONTRIBUTING.md
 frontend/index.html
 frontend/package.json
 frontend/src/__tests__/store.test.ts
@@ -43,7 +38,6 @@ frontend/src/utils/__tests__/crypto.test.ts
 frontend/src/utils/crypto.ts
 frontend/tailwind.config.js
 frontend/tsconfig.json
-README.md
 SECURITY.md
 shared/types.ts
 worker/package.json
